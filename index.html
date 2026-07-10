@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가디우스 캐릭터 육성 평가기</title>
+<style>
+  :root {
+    --bg: #17120e;
+    --panel: #241b14;
+    --panel-2: #2e2218;
+    --border: #4a3826;
+    --gold: #d4a44c;
+    --text: #e8ddcb;
+    --muted: #a08d72;
+    --red: #d05b4b;
+    --green: #7cb56b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg) radial-gradient(ellipse at top, #2a2015 0%, var(--bg) 65%);
+    color: var(--text);
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    line-height: 1.55;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 0 16px 64px; }
+  .site-header { text-align: center; padding: 36px 16px 8px; }
+  .site-header h1 {
+    margin: 0;
+    color: var(--gold);
+    font-size: 30px;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(0,0,0,.6);
+  }
+  .subtitle { color: var(--muted); margin: 6px 0 0; }
+  .step {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-top: 18px;
+  }
+  .step h2 { margin: 0 0 12px; font-size: 18px; color: var(--gold); }
+  .step-no {
+    display: inline-block; width: 24px; height: 24px; line-height: 24px;
+    text-align: center; background: var(--gold); color: #241b14;
+    border-radius: 50%; font-size: 14px; margin-right: 8px;
+  }
+  .field-label { color: var(--muted); font-size: 13px; margin: 10px 0 6px; }
+  .job-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .job-btn {
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 18px; font-size: 15px; cursor: pointer;
+    transition: all .15s;
+  }
+  .job-btn:hover:not(:disabled) { border-color: var(--gold); }
+  .job-btn.selected {
+    background: var(--gold); color: #241b14; border-color: var(--gold); font-weight: 700;
+  }
+  .job-btn:disabled { opacity: .35; cursor: not-allowed; }
+  input[type=number] {
+    background: #171009; color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 10px; font-size: 16px; width: 90px;
+  }
+  input[type=number]:focus { outline: none; border-color: var(--gold); }
+  .level-row { display: flex; align-items: center; gap: 14px; }
+  .hint { color: var(--muted); font-size: 13px; }
+  .stat-grid, .skill-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;
+  }
+  .stat-item, .skill-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+  }
+  .stat-name, .skill-name { flex: 1; font-size: 14px; }
+  .key-stat { color: var(--gold); font-weight: 700; }
+  .stat-base { color: var(--muted); font-size: 12px; }
+  .unspent-row { margin-top: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .unspent-row label { color: var(--muted); font-size: 14px; }
+  .action-row { text-align: center; margin-top: 24px; }
+  #btn-eval {
+    background: linear-gradient(180deg, #e0b45e, #b8853a);
+    color: #241207; border: none; border-radius: 10px;
+    font-size: 19px; font-weight: 800; padding: 14px 46px;
+    cursor: pointer; letter-spacing: 1px;
+    box-shadow: 0 4px 16px rgba(212,164,76,.25);
+  }
+  #btn-eval:hover { filter: brightness(1.08); }
+  .validation {
+    margin-top: 16px; padding: 12px 16px;
+    background: rgba(208,91,75,.12); border: 1px solid var(--red);
+    border-radius: 8px; color: #eea79b;
+  }
+  .validation p { margin: 4px 0; }
+  .result { margin-top: 26px; }
+  .grade-card {
+    text-align: center; padding: 28px 20px;
+    border-radius: 12px; border: 2px solid var(--border);
+    background: var(--panel);
+  }
+  .grade-letter { font-size: 76px; font-weight: 900; line-height: 1; }
+  .grade-comment { margin-top: 10px; font-size: 16px; }
+  .grade-S    { border-color: #ffd970; } .grade-S .grade-letter { color: #ffd970; text-shadow: 0 0 24px rgba(255,217,112,.5); }
+  .grade-A    { border-color: #7cb56b; } .grade-A .grade-letter { color: #7cb56b; }
+  .grade-B    { border-color: #6da3d8; } .grade-B .grade-letter { color: #6da3d8; }
+  .grade-C    { border-color: #d8c66d; } .grade-C .grade-letter { color: #d8c66d; }
+  .grade-D    { border-color: #d8956d; } .grade-D .grade-letter { color: #d8956d; }
+  .grade-F    { border-color: var(--red); } .grade-F .grade-letter { color: var(--red); }
+  .grade-HOLD { border-color: var(--muted); } .grade-HOLD .grade-letter { color: var(--muted); font-size: 48px; }
+  .warning { color: #e5c07b; background: rgba(229,192,123,.08); border-left: 3px solid #e5c07b; padding: 8px 12px; border-radius: 4px; }
+  .result h3 { color: var(--gold); margin: 26px 0 10px; }
+  .ledger { width: 100%; border-collapse: collapse; }
+  .ledger th, .ledger td {
+    border: 1px solid var(--border); padding: 9px 14px; font-size: 14px;
+  }
+  .ledger th { text-align: left; color: var(--muted); font-weight: 500; width: 70%; background: var(--panel); }
+  .ledger td { text-align: right; font-weight: 700; }
+  .ledger tr.waste th, .ledger tr.waste td { color: #eea79b; }
+  .gauge-wrap { margin-top: 20px; }
+  .gauge-title { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+  .gauge {
+    position: relative; height: 18px; border-radius: 9px;
+    background: linear-gradient(90deg, #8c3b30, #8c7a30 50%, #4c8c30);
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  /* 게이지의 오른쪽(미달성 구간)을 어둡게 덮는 오버레이 */
+  .gauge-fill {
+    position: absolute; top: 0; bottom: 0; right: 0;
+    background: rgba(23,16,9,.82); width: 100%;
+  }
+  .gauge-center { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: var(--text); opacity: .7; }
+  .gauge-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .gauge-diff { margin-top: 8px; }
+  .gauge-diff b { color: var(--gold); }
+  .comments { padding-left: 20px; }
+  .comments li { margin: 6px 0; }
+  .comments li.good { color: var(--green); }
+  .comments li.warn { color: #e5c07b; }
+  .fine-print { color: var(--muted); font-size: 12px; margin-top: 22px; }
+  .site-footer { margin-top: 40px; text-align: center; color: var(--muted); font-size: 12px; }
+  .site-footer a { color: var(--gold); }
+  @media (max-width: 560px) {
+    .grade-letter { font-size: 56px; }
+    .ledger th { width: 60%; }
+  }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <h1>가디우스 캐릭터 육성 평가기</h1>
+  <p class="subtitle">GODIUS Eternal War — 힘의 구슬 수지로 내 캐릭터가 잘 컸는지 진단합니다</p>
+</header>
+
+<main>
+  <section class="step" id="step-job">
+    <h2><span class="step-no">1</span> 직업 선택</h2>
+    <div class="field-label">주직업</div>
+    <div class="job-grid" id="main-job-grid"></div>
+    <div class="field-label">보조직업</div>
+    <div class="job-grid" id="sub-job-grid"></div>
+  </section>
+
+  <section class="step" id="step-level">
+    <h2><span class="step-no">2</span> 레벨</h2>
+    <div class="level-row">
+      <input type="number" id="inp-level" min="2" max="99" value="30">
+      <span class="hint" id="level-hint"></span>
+    </div>
+  </section>
+
+  <section class="step" id="step-stats">
+    <h2><span class="step-no">3</span> 현재 파라메터</h2>
+    <p class="hint">주직업을 선택하면 생성 시 기본값으로 채워집니다. 스탯창의 현재 수치를 입력하세요.</p>
+    <div class="stat-grid" id="stat-grid"></div>
+  </section>
+
+  <section class="step" id="step-skills">
+    <h2><span class="step-no">4</span> 보유 기능 레벨</h2>
+    <p class="hint">주직업·보조직업 조합에 따라 기능 목록이 표시됩니다. (생성 시 레벨 1부터 시작)</p>
+    <div class="skill-grid" id="skill-grid"></div>
+    <div class="unspent-row">
+      <label for="inp-unspent">미사용 힘의구슬 (캐릭터 선택 화면에서 확인)</label>
+      <input type="number" id="inp-unspent" min="0" value="0">
+    </div>
+  </section>
+
+  <div class="action-row">
+    <button id="btn-eval" type="button">캐릭터 평가하기</button>
+  </div>
+  <div id="validation" class="validation" hidden></div>
+
+  <section id="result" class="result" hidden></section>
+
+  <footer class="site-footer">
+    <p>데이터 출처: <a href="https://www.godius.co.kr/" target="_blank" rel="noopener">가디우스 공식 홈페이지 가이드</a> ·
+    기능 성공률은 커뮤니티 근사치이며 파라메터 비용·구슬 획득량은 공식 수치입니다.</p>
+  </footer>
+</main>
+
+<script id="godius-core">
+// ============================================================
+// 가디우스 게임 데이터 (공식 홈페이지 가이드 기준)
+// 수치가 바뀌면 이 GAME 객체만 수정하면 된다.
+// ============================================================
+const STAT_KEYS = ['STR', 'AGR', 'DEX', 'INT', 'VIT', 'MEN'];
+const STAT_LABELS = {
+  STR: 'STR (힘)', AGR: 'AGR (민첩)', DEX: 'DEX (손재주)',
+  INT: 'INT (지혜)', VIT: 'VIT (활력)', MEN: 'MEN (정신력)',
+};
+
+const GAME = {
+  jobs: {
+    warrior: { name: '전사',   base: { STR: 12, AGR: 6, DEX: 10, INT: 6,  VIT: 6,  MEN: 6  },
+      skills: ['검술', '부술', '둔기술', '격술', '회피술'], keyStats: ['STR', 'VIT'] },
+    fighter: { name: '검투사', base: { STR: 12, AGR: 6, DEX: 6,  INT: 6,  VIT: 12, MEN: 6  },
+      skills: ['부술', '둔기술', '회피술', '창술', '암살검술', '격술'], keyStats: ['STR', 'VIT'] },
+    thief:   { name: '도둑',   base: { STR: 6,  AGR: 6, DEX: 6,  INT: 6,  VIT: 6,  MEN: 6  },
+      skills: ['부술', '암살검술', '회피술', '함정발견', '해체술', '연막치기', '떨어뜨리기'], keyStats: ['DEX', 'AGR'] },
+    wizard:  { name: '마법사', base: { STR: 6,  AGR: 6, DEX: 6,  INT: 12, VIT: 6,  MEN: 10 },
+      skills: ['격술', '화염마법', '냉동마법', '중성마법'], keyStats: ['VIT', 'MEN', 'INT'] },
+    cleric:  { name: '성직자', base: { STR: 6,  AGR: 6, DEX: 6,  INT: 10, VIT: 6,  MEN: 12 },
+      skills: ['둔기술', '신성마법', '중성마법'], keyStats: ['VIT', 'MEN', 'INT'] },
+  },
+  subJobs: {
+    warrior:    { name: '전사',     skills: ['검술', '부술', '둔기술', '격술', '회피술'] },
+    thief:      { name: '도둑',     skills: ['부술', '암살검술', '회피술', '함정발견', '해체술', '연막치기', '떨어뜨리기'] },
+    alchemist:  { name: '연금술사', skills: ['부술', '화학', '응급처치'] },
+    cleric:     { name: '성직자',   skills: ['둔기술', '신성마법', '중성마법'] },
+    tailor:     { name: '재봉사',   skills: ['검술', '옷제작', '옷수선'] },
+    blacksmith: { name: '대장장이', skills: ['둔기술', '무기제작', '무기수선'] },
+    bard:       { name: '바드',     skills: ['창술', '주가'] },
+  },
+  // 주직업별 선택 불가 보조직업 (검투사는 성직자/연금술사 불가) + 주직업과 동일 보조 불가
+  subJobBlock: { fighter: ['cleric', 'alchemist'] },
+  totalInitial: 72,        // 생성 시 전체 파라메터 합
+  creationMaxPerStat: 15,  // 생성 시 스탯당 최대치
+  statMax: 30,             // 파라메터 최대치
+  skillMax: 30,            // 기능 최대 레벨
+  // 레벨업 시 힘의구슬 획득: [구간 시작, 구간 끝, 획득 개수]
+  orbTable: [[2, 10, 3], [11, 30, 2], [31, 50, 4], [51, 70, 5], [71, 80, 6], [81, 90, 7], [91, 999, 8]],
+  // 파라메터 상승 비용: [목표 수치 상한, 필요 구슬] — 실패 없음
+  paramCostTiers: [[15, 1], [20, 3], [25, 4], [30, 5]],
+  // 기능훈련 확률성 성공률: [목표 기능레벨 상한, 성공률] — 근사치
+  skillRate: [[5, 0.9], [10, 0.8], [15, 0.5], [20, 0.3], [25, 0.1], [30, 0.08]],
+};
+
+// ============================================================
+// 순수 계산 함수 (DOM 의존 없음 — Node에서도 실행 가능)
+// ============================================================
+function orbsAtLevel(level) {
+  const row = GAME.orbTable.find(([lo, hi]) => level >= lo && level <= hi);
+  return row ? row[2] : 0;
+}
+
+function earnedOrbs(level) {
+  let total = 0;
+  for (let l = 2; l <= level; l++) total += orbsAtLevel(l);
+  return total;
+}
+
+function paramUpCost(target) {
+  return GAME.paramCostTiers.find(([max]) => target <= max)[1];
+}
+
+function rawStatCost(base, cur) {
+  let cost = 0;
+  for (let v = base + 1; v <= cur; v++) cost += paramUpCost(v);
+  return cost;
+}
+
+// 초기 배분(보너스 포인트)은 유저에게 유리한 쪽으로 추정:
+// 생성 시 배분 가능한 포인트는 전부 15 이하(=1개짜리)이므로
+// 현재 스탯 기준 배치 가능한 만큼 1개씩 절약된 것으로 계산한다.
+function paramCost(jobKey, stats) {
+  const base = GAME.jobs[jobKey].base;
+  const raw = STAT_KEYS.reduce((s, k) => s + rawStatCost(base[k], stats[k]), 0);
+  const baseSum = STAT_KEYS.reduce((s, k) => s + base[k], 0);
+  const bonus = GAME.totalInitial - baseSum;
+  const placeable = STAT_KEYS.reduce(
+    (s, k) => s + Math.max(0, Math.min(GAME.creationMaxPerStat, stats[k]) - base[k]), 0);
+  return { cost: raw - Math.min(bonus, placeable), bonus, placeable };
+}
+
+function skillRateAt(target) {
+  return GAME.skillRate.find(([max]) => target <= max)[1];
+}
+
+// 이론 최소: 모든 훈련이 1트에 성공했을 때 (레벨당 1개)
+function skillMinCost(skillLevels) {
+  return Object.values(skillLevels).reduce((s, v) => s + Math.max(0, v - 1), 0);
+}
+
+// 평균 기대치: 확률성 훈련의 기대 소모량 (성공률 역수의 합)
+function skillExpectedCost(skillLevels) {
+  let total = 0;
+  for (const lv of Object.values(skillLevels)) {
+    for (let v = 2; v <= lv; v++) total += 1 / skillRateAt(v);
+  }
+  return total;
+}
+
+function gradeOf(ratio) {
+  if (ratio >= 1.3) return 'S';
+  if (ratio >= 1.1) return 'A';
+  if (ratio >= 0.9) return 'B';
+  if (ratio >= 0.7) return 'C';
+  if (ratio >= 0.5) return 'D';
+  return 'F';
+}
+
+// input: { mainJob, subJob, level, stats:{...}, skills:{기능명:레벨}, unspent }
+function evaluate(input) {
+  const errors = [];
+  const warnings = [];
+  const job = GAME.jobs[input.mainJob];
+  const sub = GAME.subJobs[input.subJob];
+
+  if (!job) errors.push('주직업을 선택하세요.');
+  if (!sub) errors.push('보조직업을 선택하세요.');
+  if (job && sub) {
+    if (input.mainJob === input.subJob) errors.push('주직업과 보조직업은 같을 수 없습니다.');
+    if ((GAME.subJobBlock[input.mainJob] || []).includes(input.subJob)) {
+      errors.push(`${job.name}은(는) 보조직업으로 ${sub.name}를 선택할 수 없습니다.`);
+    }
+  }
+  if (!Number.isInteger(input.level) || input.level < 2 || input.level > 99) {
+    errors.push('레벨은 2~99 사이의 정수여야 합니다.');
+  }
+  if (job) {
+    for (const k of STAT_KEYS) {
+      const v = input.stats[k];
+      if (!Number.isInteger(v) || v < job.base[k] || v > GAME.statMax) {
+        errors.push(`${STAT_LABELS[k]}은(는) ${job.base[k]}~${GAME.statMax} 사이여야 합니다.`);
+      }
+    }
+    if (errors.length === 0) {
+      const capSum = STAT_KEYS.reduce((s, k) => s + Math.min(GAME.creationMaxPerStat, input.stats[k]), 0);
+      if (capSum < GAME.totalInitial) {
+        errors.push(`파라메터 입력이 생성 시 배분(합 ${GAME.totalInitial})과 모순됩니다. 현재 파라메터를 다시 확인하세요.`);
+      }
+    }
+  }
+  for (const [name, lv] of Object.entries(input.skills || {})) {
+    if (!Number.isInteger(lv) || lv < 1 || lv > GAME.skillMax) {
+      errors.push(`기능 [${name}] 레벨은 1~${GAME.skillMax} 사이여야 합니다.`);
+    }
+  }
+  const unspent = input.unspent || 0;
+  if (!Number.isInteger(unspent) || unspent < 0) errors.push('미사용 힘의구슬은 0 이상의 정수여야 합니다.');
+  if (errors.length) return { ok: false, errors, warnings };
+
+  const earned = earnedOrbs(input.level);
+  const pc = paramCost(input.mainJob, input.stats);
+  const skillMin = skillMinCost(input.skills);
+  const skillExpected = skillExpectedCost(input.skills);
+  const skillActual = earned - pc.cost - unspent;
+
+  if (skillActual < 0) {
+    return {
+      ok: false, warnings,
+      errors: [`획득 가능한 구슬(${earned}개)보다 많이 소비된 캐릭터입니다. 레벨·파라메터·미사용 구슬 입력을 확인하세요.`],
+    };
+  }
+
+  let adjusted = skillActual;
+  if (skillActual < skillMin) {
+    warnings.push('기능 레벨 대비 소비한 구슬이 이론 최소보다 적습니다. 퀘스트·이벤트 등으로 구슬을 추가 획득한 것으로 보고 최상 효율로 평가합니다.');
+    adjusted = skillMin;
+  }
+
+  let grade;
+  let ratio = null;
+  if (skillMin === 0) {
+    grade = adjusted <= 0 ? 'HOLD' : 'F'; // 기능 투자 없음: 비축형 또는 전량 소실
+    if (grade === 'F') ratio = 0;
+  } else {
+    ratio = skillExpected / adjusted;
+    grade = gradeOf(ratio);
+  }
+
+  return {
+    ok: true, errors, warnings,
+    earned, paramCost: pc.cost, bonus: pc.bonus, unspent,
+    skillMin, skillExpected, skillActual, adjustedSkillSpend: adjusted,
+    wasted: Math.max(0, adjusted - skillMin),   // 실패로 소실된 것으로 추정되는 구슬
+    savedOrbs: skillExpected - adjusted,        // 평균 유저 대비 절약분 (음수 = 초과 소모)
+    ratio, grade,
+  };
+}
+
+const GodiusCalc = {
+  GAME, STAT_KEYS, STAT_LABELS,
+  orbsAtLevel, earnedOrbs, paramUpCost, rawStatCost, paramCost,
+  skillRateAt, skillMinCost, skillExpectedCost, gradeOf, evaluate,
+};
+if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
+</script>
+
+<script id="godius-ui">
+(function () {
+  const $ = (sel) => document.querySelector(sel);
+  const state = { mainJob: null, subJob: null };
+
+  const GRADE_INFO = {
+    S:    { label: 'S', comment: '구슬의 신이 함께합니다. 완벽에 가까운 육성!' },
+    A:    { label: 'A', comment: '평균 이상의 운과 계획성. 아주 잘 컸습니다.' },
+    B:    { label: 'B', comment: '평균적인 유저 수준. 무난하게 잘 크고 있습니다.' },
+    C:    { label: 'C', comment: '기능 실패가 좀 있었네요. 평균에 약간 못 미칩니다.' },
+    D:    { label: 'D', comment: '구슬을 꽤 날렸습니다. 고레벨 기능은 보장성 훈련을 애용하세요.' },
+    F:    { label: 'F', comment: '기능 실패로 구슬을 갈아넣었습니다… 지금부터라도 보장성 위주로!' },
+    HOLD: { label: '보류', comment: '구슬 비축형 캐릭터. 아직 기능 투자가 없어 평가하기 이릅니다.' },
+  };
+
+  // 공식 자동설정과 유사하게: 핵심 스탯부터 15까지 보너스를 배분한 기본값
+  function autoAllocate(jobKey) {
+    const job = GAME.jobs[jobKey];
+    const stats = { ...job.base };
+    let bonus = GAME.totalInitial - STAT_KEYS.reduce((s, k) => s + job.base[k], 0);
+    const order = [...job.keyStats, ...STAT_KEYS.filter((k) => !job.keyStats.includes(k))];
+    for (const k of order) {
+      const add = Math.min(bonus, GAME.creationMaxPerStat - stats[k]);
+      stats[k] += add;
+      bonus -= add;
+      if (bonus <= 0) break;
+    }
+    return stats;
+  }
+
+  function allowedSubJobs(mainKey) {
+    const blocked = GAME.subJobBlock[mainKey] || [];
+    return Object.keys(GAME.subJobs).filter((k) => k !== mainKey && !blocked.includes(k));
+  }
+
+  function renderMainJobs() {
+    const grid = $('#main-job-grid');
+    grid.innerHTML = '';
+    for (const [key, job] of Object.entries(GAME.jobs)) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'job-btn' + (state.mainJob === key ? ' selected' : '');
+      btn.textContent = job.name;
+      btn.addEventListener('click', () => {
+        state.mainJob = key;
+        if (!allowedSubJobs(key).includes(state.subJob)) state.subJob = allowedSubJobs(key)[0];
+        renderMainJobs();
+        renderSubJobs();
+        renderStats();
+        renderSkills();
+      });
+      grid.appendChild(btn);
+    }
+  }
+
+  function renderSubJobs() {
+    const grid = $('#sub-job-grid');
+    grid.innerHTML = '';
+    const allowed = state.mainJob ? allowedSubJobs(state.mainJob) : Object.keys(GAME.subJobs);
+    for (const [key, job] of Object.entries(GAME.subJobs)) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'job-btn' + (state.subJob === key ? ' selected' : '');
+      btn.textContent = job.name;
+      btn.disabled = !allowed.includes(key);
+      btn.title = btn.disabled ? '이 주직업으로는 선택할 수 없는 보조직업입니다' : '';
+      btn.addEventListener('click', () => {
+        state.subJob = key;
+        renderSubJobs();
+        renderSkills();
+      });
+      grid.appendChild(btn);
+    }
+  }
+
+  function renderStats() {
+    const grid = $('#stat-grid');
+    grid.innerHTML = '';
+    if (!state.mainJob) return;
+    const base = GAME.jobs[state.mainJob].base;
+    const preset = autoAllocate(state.mainJob);
+    for (const k of STAT_KEYS) {
+      const wrap = document.createElement('label');
+      wrap.className = 'stat-item';
+      const isKey = GAME.jobs[state.mainJob].keyStats.includes(k);
+      wrap.innerHTML =
+        `<span class="stat-name${isKey ? ' key-stat' : ''}">${STAT_LABELS[k]}</span>` +
+        `<input type="number" data-stat="${k}" min="${base[k]}" max="${GAME.statMax}" value="${preset[k]}">` +
+        `<span class="stat-base">기본 ${base[k]}</span>`;
+      grid.appendChild(wrap);
+    }
+  }
+
+  function renderSkills() {
+    const grid = $('#skill-grid');
+    grid.innerHTML = '';
+    if (!state.mainJob || !state.subJob) return;
+    const names = [...new Set([...GAME.jobs[state.mainJob].skills, ...GAME.subJobs[state.subJob].skills])];
+    for (const name of names) {
+      const wrap = document.createElement('label');
+      wrap.className = 'skill-item';
+      wrap.innerHTML =
+        `<span class="skill-name">${name}</span>` +
+        `<input type="number" data-skill="${name}" min="1" max="${GAME.skillMax}" value="1">`;
+      grid.appendChild(wrap);
+    }
+  }
+
+  function updateLevelHint() {
+    const lv = parseInt($('#inp-level').value, 10);
+    $('#level-hint').textContent =
+      Number.isInteger(lv) && lv >= 2 && lv <= 99
+        ? `이 레벨까지 레벨업으로 획득한 힘의구슬: ${earnedOrbs(lv)}개`
+        : '';
+  }
+
+  function collectInput() {
+    const stats = {};
+    document.querySelectorAll('#stat-grid input[data-stat]').forEach((el) => {
+      stats[el.dataset.stat] = parseInt(el.value, 10);
+    });
+    const skills = {};
+    document.querySelectorAll('#skill-grid input[data-skill]').forEach((el) => {
+      skills[el.dataset.skill] = parseInt(el.value, 10);
+    });
+    return {
+      mainJob: state.mainJob,
+      subJob: state.subJob,
+      level: parseInt($('#inp-level').value, 10),
+      stats, skills,
+      unspent: parseInt($('#inp-unspent').value, 10) || 0,
+    };
+  }
+
+  function fmt(n) {
+    return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  }
+
+  function statComments(input) {
+    const job = GAME.jobs[input.mainJob];
+    const out = [];
+    const lowKeys = job.keyStats.filter((k) => input.stats[k] < 15);
+    if (lowKeys.length) {
+      out.push({ type: 'warn', text: `주직업(${job.name}) 핵심 스탯 ${lowKeys.map((k) => STAT_LABELS[k]).join(', ')}이(가) 15 미만입니다. 공식 가이드는 핵심 스탯을 15에 맞추는 것을 권장합니다.` });
+    } else {
+      out.push({ type: 'good', text: `핵심 스탯(${job.keyStats.join(', ')})이 모두 15 이상 — ${job.name}다운 탄탄한 배분입니다.` });
+    }
+    const over = STAT_KEYS.filter((k) => !job.keyStats.includes(k) && input.stats[k] > 20);
+    if (over.length) {
+      out.push({ type: 'warn', text: `비핵심 스탯 ${over.map((k) => STAT_LABELS[k]).join(', ')}에 20을 넘는 과투자가 보입니다. 16부터는 구슬이 3~5개씩 들어가는 구간이니 핵심 스탯 우선을 추천합니다.` });
+    }
+    return out;
+  }
+
+  function renderResult(r, input) {
+    const box = $('#result');
+    const g = GRADE_INFO[r.grade];
+    const warnHtml = r.warnings.map((w) => `<p class="warning">⚠ ${w}</p>`).join('');
+    const comments = statComments(input)
+      .map((c) => `<li class="${c.type}">${c.text}</li>`).join('');
+
+    // 운 게이지: 효율 지수 0~2를 0~100%로 (1.0 = 평균 = 중앙)
+    let gaugeHtml = '';
+    if (r.ratio !== null && r.grade !== 'HOLD') {
+      const pct = Math.max(0, Math.min(2, r.ratio)) / 2 * 100;
+      const diff = r.savedOrbs;
+      const diffText = diff >= 0
+        ? `평균적인 유저보다 힘의구슬 약 <b>${fmt(diff)}개</b>를 절약했습니다.`
+        : `평균적인 유저보다 힘의구슬 약 <b>${fmt(-diff)}개</b>를 더 소모했습니다.`;
+      gaugeHtml = `
+        <div class="gauge-wrap">
+          <div class="gauge-title">운 게이지 (효율 지수 ${fmt(r.ratio)} — 1.0이 평균)</div>
+          <div class="gauge"><div class="gauge-fill" style="width:${(100 - pct).toFixed(1)}%"></div><div class="gauge-center"></div></div>
+          <div class="gauge-labels"><span>허접</span><span>평균</span><span>괴수</span></div>
+          <p class="gauge-diff">${diffText}</p>
+        </div>`;
+    }
+
+    box.innerHTML = `
+      <div class="grade-card grade-${r.grade}">
+        <div class="grade-letter">${g.label}</div>
+        <div class="grade-comment">${g.comment}</div>
+      </div>
+      ${warnHtml}
+      ${gaugeHtml}
+      <h3>힘의 구슬 수지</h3>
+      <table class="ledger">
+        <tr><th>레벨업으로 획득한 구슬</th><td>${r.earned}개</td></tr>
+        <tr><th>파라메터에 사용 (실패 없음)</th><td>${r.paramCost}개</td></tr>
+        <tr><th>미사용 보유 구슬</th><td>${r.unspent}개</td></tr>
+        <tr><th>기능 훈련에 사용된 구슬 (추정)</th><td>${r.adjustedSkillSpend}개</td></tr>
+        <tr><th>기능 이론 최소 비용 (전부 1트 성공 시)</th><td>${r.skillMin}개</td></tr>
+        <tr><th>기능 평균 기대 비용 (평균 유저)</th><td>${fmt(r.skillExpected)}개</td></tr>
+        <tr class="waste"><th>실패로 소실된 것으로 추정되는 구슬</th><td>${r.wasted}개</td></tr>
+      </table>
+      <h3>스탯 진단</h3>
+      <ul class="comments">${comments}</ul>
+      <p class="fine-print">* 기능 성공률은 근사치 기반 추정이며, 퀘스트·이벤트로 얻은 추가 구슬은 계산에 포함되지 않습니다.</p>`;
+    box.hidden = false;
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function run() {
+    const input = collectInput();
+    const r = evaluate(input);
+    const v = $('#validation');
+    if (!r.ok) {
+      v.innerHTML = r.errors.map((e) => `<p>✖ ${e}</p>`).join('');
+      v.hidden = false;
+      $('#result').hidden = true;
+      return;
+    }
+    v.hidden = true;
+    renderResult(r, input);
+  }
+
+  // 초기화
+  state.mainJob = 'warrior';
+  state.subJob = allowedSubJobs('warrior')[0];
+  renderMainJobs();
+  renderSubJobs();
+  renderStats();
+  renderSkills();
+  updateLevelHint();
+  $('#inp-level').addEventListener('input', updateLevelHint);
+  $('#btn-eval').addEventListener('click', run);
+  // 입력이 바뀌면 이전 평가 결과는 무효 — 숨긴다
+  document.querySelector('main').addEventListener('input', (e) => {
+    if (!e.target.closest('#result')) $('#result').hidden = true;
+  });
+  ['#main-job-grid', '#sub-job-grid'].forEach((sel) => {
+    $(sel).addEventListener('click', () => { $('#result').hidden = true; });
+  });
+})();
+</script>
+</body>
+</html>

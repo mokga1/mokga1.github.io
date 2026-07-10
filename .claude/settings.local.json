@@ -11,7 +11,9 @@
       "PowerShell($sp = \"C:\\\\Users\\\\sonmok\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--AI-Godius\\\\d29f10cd-3b49-4f63-ad40-45568aef0a1c\\\\scratchpad\"; foreach \\($p in @\\(7,11,13,12\\)\\) { $r = Invoke-WebRequest -Uri \"https://www.godius.co.kr/h_info_1?t_id=2&part=$p\" -UseBasicParsing; $r.Content | Out-File -Encoding utf8 \"$sp\\\\part$p.html\"; \"part $p : $\\($r.Content.Length\\)\" })",
       "PowerShell($sp = \"C:\\\\Users\\\\sonmok\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--AI-Godius\\\\d29f10cd-3b49-4f63-ad40-45568aef0a1c\\\\scratchpad\"; foreach \\($p in @\\(7,11,13,12\\)\\) { $html = Get-Content \"$sp\\\\part$p.html\" -Raw; $m = [regex]::Matches\\($html, 'https://image1\\\\.godius\\\\.co\\\\.kr/[^\"]+\\\\.\\(jpg|png|gif\\)'\\); $i=0; foreach \\($mm in $m\\) { $url = $mm.Value; if \\($url -notmatch '20200121'\\) { Invoke-WebRequest -Uri $url -OutFile \"$sp\\\\part${p}_img$i.jpg\"; \"part$p img$i : $url\"; $i++ } } })",
       "PowerShell(git init D:\\\\AI\\\\Godius 2>&1)",
-      "PowerShell(git -C D:\\\\AI\\\\Godius add -A)"
+      "PowerShell(git -C D:\\\\AI\\\\Godius add -A)",
+      "PowerShell(git -C D:\\\\AI\\\\Godius checkout -b feature/character-evaluator)",
+      "PowerShell(node D:\\\\AI\\\\Godius\\\\tests\\\\run-tests.mjs)"
     ]
   }
 }

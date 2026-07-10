@@ -1,0 +1,113 @@
+// index.html의 <script id="godius-core"> 블록을 추출해 Node에서 검증한다.
+// 실행: node tests/run-tests.mjs
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'index.html'), 'utf8');
+const m = html.match(/<script id="godius-core">([\s\S]*?)<\/script>/);
+assert.ok(m, 'godius-core 스크립트 블록을 찾지 못했습니다');
+const C = new Function(`${m[1]}; return GodiusCalc;`)();
+
+let passed = 0;
+function test(name, fn) {
+  try { fn(); passed++; console.log(`  ok - ${name}`); }
+  catch (e) { console.error(`FAIL - ${name}\n    ${e.message}`); process.exitCode = 1; }
+}
+
+// --- 힘의구슬 획득 ---
+test('earnedOrbs: 레벨 10 = 27 (9렙업 x 3)', () => assert.equal(C.earnedOrbs(10), 27));
+test('earnedOrbs: 레벨 30 = 67 (+20x2)', () => assert.equal(C.earnedOrbs(30), 67));
+test('earnedOrbs: 레벨 50 = 147 (+20x4)', () => assert.equal(C.earnedOrbs(50), 147));
+test('earnedOrbs: 레벨 99 = 449', () => assert.equal(C.earnedOrbs(99), 449));
+test('earnedOrbs: 레벨 2 = 3', () => assert.equal(C.earnedOrbs(2), 3));
+
+// --- 파라메터 비용 ---
+test('rawStatCost: 6→30 = 69 (9x1+5x3+5x4+5x5)', () => assert.equal(C.rawStatCost(6, 30), 69));
+test('rawStatCost: 6→15 = 9', () => assert.equal(C.rawStatCost(6, 15), 9));
+test('rawStatCost: 15→16 = 3', () => assert.equal(C.rawStatCost(15, 16), 3));
+test('paramCost: 전사 합72 배분이면 비용 0', () => {
+  const r = C.paramCost('warrior', { STR: 15, AGR: 9, DEX: 15, INT: 9, VIT: 15, MEN: 9 });
+  assert.equal(r.cost, 0);
+  assert.equal(r.bonus, 26); // 72 - 기본합 46
+});
+test('paramCost: 보너스 초과 상승분은 비용 발생', () => {
+  // 전사 STR 20: 13~15는 보너스로 흡수 가능(1개짜리), 16~20은 3개씩
+  const r = C.paramCost('warrior', { STR: 20, AGR: 12, DEX: 15, INT: 10, VIT: 15, MEN: 10 });
+  // raw = (13..15:3 + 16..20:15) + 6 + 5 + 4 + 9 + 4 = 46, placeable = 3+6+5+4+9+4 = 31 → 절약 26
+  assert.equal(r.cost, 20);
+});
+
+// --- 기능 비용 ---
+test('skillMinCost: 검술10 + 회피술1 = 9', () => assert.equal(C.skillMinCost({ 검술: 10, 회피술: 1 }), 9));
+test('skillExpectedCost: 기능 6레벨 ≈ 5.694', () => {
+  const v = C.skillExpectedCost({ 검술: 6 }); // 2~5: 4/0.9, 6: 1/0.8
+  assert.ok(Math.abs(v - (4 / 0.9 + 1 / 0.8)) < 1e-9, `got ${v}`);
+});
+test('skillExpectedCost: 레벨1은 0', () => assert.equal(C.skillExpectedCost({ 검술: 1 }), 0));
+
+// --- 등급 ---
+test('gradeOf 경계값', () => {
+  assert.equal(C.gradeOf(1.3), 'S');
+  assert.equal(C.gradeOf(1.1), 'A');
+  assert.equal(C.gradeOf(0.9), 'B');
+  assert.equal(C.gradeOf(0.7), 'C');
+  assert.equal(C.gradeOf(0.5), 'D');
+  assert.equal(C.gradeOf(0.49), 'F');
+});
+
+// --- evaluate 통합 ---
+const baseInput = {
+  mainJob: 'warrior', subJob: 'tailor', level: 30,
+  stats: { STR: 15, AGR: 9, DEX: 15, INT: 9, VIT: 15, MEN: 9 },
+  skills: { 검술: 10, 부술: 1, 둔기술: 1, 격술: 1, 회피술: 1, 옷제작: 1, 옷수선: 1 },
+  unspent: 0,
+};
+test('evaluate: 정상 케이스 수지 계산', () => {
+  const r = C.evaluate(baseInput);
+  assert.ok(r.ok, r.errors && r.errors.join(','));
+  assert.equal(r.earned, 67);
+  assert.equal(r.paramCost, 0);
+  assert.equal(r.skillMin, 9);
+  assert.equal(r.skillActual, 67); // 전부 기능에 사용된 것으로 간주
+  // expected = 4/0.9 + 5/0.8 = 10.69... → ratio = 10.69/67 → F
+  assert.equal(r.grade, 'F');
+});
+test('evaluate: 미사용 구슬 반영 시 등급 상승', () => {
+  const r = C.evaluate({ ...baseInput, unspent: 55 });
+  assert.ok(r.ok);
+  assert.equal(r.skillActual, 12);
+  assert.equal(r.grade, 'C'); // 10.69/12 ≈ 0.89 → C
+});
+test('evaluate: 이론 최소보다 적게 쓴 모순 입력은 경고 + 최상 보정', () => {
+  const r = C.evaluate({ ...baseInput, unspent: 60 }); // actual 7 < min 9
+  assert.ok(r.ok);
+  assert.equal(r.warnings.length, 1);
+  assert.equal(r.adjustedSkillSpend, 9);
+  assert.equal(r.grade, 'A'); // 10.69/9 ≈ 1.19 → A
+});
+test('evaluate: 기능 투자 없이 수지가 맞으면 HOLD', () => {
+  const skills = Object.fromEntries(Object.keys(baseInput.skills).map((k) => [k, 1]));
+  const r = C.evaluate({ ...baseInput, skills, unspent: 67 });
+  assert.ok(r.ok);
+  assert.equal(r.grade, 'HOLD');
+});
+test('evaluate: 획득량 초과 소비는 오류', () => {
+  const r = C.evaluate({ ...baseInput, level: 2, stats: { STR: 20, AGR: 12, DEX: 15, INT: 10, VIT: 15, MEN: 10 } });
+  assert.equal(r.ok, false);
+});
+test('evaluate: 검투사 + 성직자 보조 불가', () => {
+  const r = C.evaluate({ ...baseInput, mainJob: 'fighter', subJob: 'cleric', stats: { STR: 15, AGR: 9, DEX: 9, INT: 9, VIT: 15, MEN: 15 } });
+  assert.equal(r.ok, false);
+});
+test('evaluate: 기본값 미만 스탯은 오류', () => {
+  const r = C.evaluate({ ...baseInput, stats: { ...baseInput.stats, STR: 11 } });
+  assert.equal(r.ok, false);
+});
+test('evaluate: 생성 배분(72) 모순 입력은 오류', () => {
+  const r = C.evaluate({ ...baseInput, stats: { STR: 12, AGR: 6, DEX: 10, INT: 6, VIT: 6, MEN: 6 } }); // 합46 < 72
+  assert.equal(r.ok, false);
+});
+
+console.log(process.exitCode ? '\n일부 테스트 실패' : `\n전체 ${passed}개 테스트 통과`);
