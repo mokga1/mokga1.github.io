@@ -41,11 +41,24 @@ test('paramCost: 보너스 초과 상승분은 비용 발생', () => {
 
 // --- 기능 비용 ---
 test('skillMinCost: 검술10 + 회피술1 = 9', () => assert.equal(C.skillMinCost({ 검술: 10, 회피술: 1 }), 9));
-test('skillExpectedCost: 기능 6레벨 ≈ 5.694', () => {
-  const v = C.skillExpectedCost({ 검술: 6 }); // 2~5: 4/0.9, 6: 1/0.8
-  assert.ok(Math.abs(v - (4 / 0.9 + 1 / 0.8)) < 1e-9, `got ${v}`);
+test('skillExpectedCost: 기능 6레벨 (스팀 성공률표)', () => {
+  const v = C.skillExpectedCost({ 검술: 6 }); // 2:90 3:90 4:85 5:80 6:75
+  const expect = 1 / 0.9 + 1 / 0.9 + 1 / 0.85 + 1 / 0.8 + 1 / 0.75;
+  assert.ok(Math.abs(v - expect) < 1e-9, `got ${v}`);
 });
 test('skillExpectedCost: 레벨1은 0', () => assert.equal(C.skillExpectedCost({ 검술: 1 }), 0));
+test('skillRateAt: 30레벨 성공률 6%', () => assert.equal(C.skillRateAt(30), 0.06));
+test('skillRateAt: 20레벨 성공률 12%', () => assert.equal(C.skillRateAt(20), 0.12));
+
+// --- 마법 습득 비용 ---
+test('spellCost: 마법사 파이어스톰5 + 홀드3 = 8', () =>
+  assert.equal(C.spellCost('wizard', 'bard', ['파이어스톰', '홀드']), 8));
+test('spellCost: 직업 조합에 없는 마법은 무시', () =>
+  assert.equal(C.spellCost('warrior', 'bard', ['큐어', '파이어스톰']), 0));
+test('spellCost: 보조 성직자로 신성마법 습득 가능', () =>
+  assert.equal(C.spellCost('warrior', 'cleric', ['리저렉트', '실드블럭']), 9));
+test('availableSpellGroups: 도둑+바드는 습득 가능 마법 없음', () =>
+  assert.equal(C.availableSpellGroups('thief', 'bard').length, 0));
 
 // --- 등급 ---
 test('gradeOf 경계값', () => {
@@ -78,14 +91,20 @@ test('evaluate: 미사용 구슬 반영 시 등급 상승', () => {
   const r = C.evaluate({ ...baseInput, unspent: 55 });
   assert.ok(r.ok);
   assert.equal(r.skillActual, 12);
-  assert.equal(r.grade, 'C'); // 10.69/12 ≈ 0.89 → C
+  assert.equal(r.grade, 'B'); // 12.43/12 ≈ 1.04 → B
 });
 test('evaluate: 이론 최소보다 적게 쓴 모순 입력은 경고 + 최상 보정', () => {
   const r = C.evaluate({ ...baseInput, unspent: 60 }); // actual 7 < min 9
   assert.ok(r.ok);
   assert.equal(r.warnings.length, 1);
   assert.equal(r.adjustedSkillSpend, 9);
-  assert.equal(r.grade, 'A'); // 10.69/9 ≈ 1.19 → A
+  assert.equal(r.grade, 'S'); // 12.43/9 ≈ 1.38 → S
+});
+test('evaluate: 습득 마법 구슬이 수지에 반영', () => {
+  const r = C.evaluate({ ...baseInput, subJob: 'cleric', spells: ['리저렉트'], unspent: 51 });
+  assert.ok(r.ok);
+  assert.equal(r.spellOrbs, 4);
+  assert.equal(r.skillActual, 12); // 67 - 0 - 4 - 51
 });
 test('evaluate: 기능 투자 없이 수지가 맞으면 HOLD', () => {
   const skills = Object.fromEntries(Object.keys(baseInput.skills).map((k) => [k, 1]));

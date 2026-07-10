@@ -79,6 +79,17 @@
   .stat-name, .skill-name { flex: 1; font-size: 14px; }
   .key-stat { color: var(--gold); font-weight: 700; }
   .stat-base { color: var(--muted); font-size: 12px; }
+  .spell-group { margin-top: 6px; }
+  .spell-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .spell-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 5px 12px; font-size: 14px; cursor: pointer;
+    user-select: none;
+  }
+  .spell-chip:has(input:checked) { border-color: var(--gold); background: rgba(212,164,76,.15); }
+  .spell-chip input { accent-color: var(--gold); margin: 0; }
+  .spell-chip em { font-style: normal; color: var(--muted); font-size: 12px; }
   .unspent-row { margin-top: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .unspent-row label { color: var(--muted); font-size: 14px; }
   .action-row { text-align: center; margin-top: 24px; }
@@ -182,6 +193,15 @@
     <h2><span class="step-no">4</span> 보유 기능 레벨</h2>
     <p class="hint">주직업·보조직업 조합에 따라 기능 목록이 표시됩니다. (생성 시 레벨 1부터 시작)</p>
     <div class="skill-grid" id="skill-grid"></div>
+  </section>
+
+  <section class="step" id="step-spells" hidden>
+    <h2><span class="step-no">5</span> 습득한 마법 · 특수기술</h2>
+    <p class="hint">배울 때 힘의구슬이 들어가는 것만 표시됩니다 (괄호 안이 소모 구슬). 란스만 드는 마법은 평가와 무관하여 제외.</p>
+    <div id="spell-groups"></div>
+  </section>
+
+  <section class="step" id="step-unspent">
     <div class="unspent-row">
       <label for="inp-unspent">미사용 힘의구슬 (캐릭터 선택 화면에서 확인)</label>
       <input type="number" id="inp-unspent" min="0" value="0">
@@ -196,8 +216,9 @@
   <section id="result" class="result" hidden></section>
 
   <footer class="site-footer">
-    <p>데이터 출처: <a href="https://www.godius.co.kr/" target="_blank" rel="noopener">가디우스 공식 홈페이지 가이드</a> ·
-    기능 성공률은 커뮤니티 근사치이며 파라메터 비용·구슬 획득량은 공식 수치입니다.</p>
+    <p>데이터 출처: <a href="https://www.godius.co.kr/" target="_blank" rel="noopener">가디우스 공식 홈페이지</a> ·
+    <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3750780737" target="_blank" rel="noopener">스팀 공식 가이드</a>
+    (기능 성공률표 · 마법 습득 비용 · 직업별 스킬)</p>
   </footer>
 </main>
 
@@ -244,8 +265,33 @@ const GAME = {
   orbTable: [[2, 10, 3], [11, 30, 2], [31, 50, 4], [51, 70, 5], [71, 80, 6], [81, 90, 7], [91, 999, 8]],
   // 파라메터 상승 비용: [목표 수치 상한, 필요 구슬] — 실패 없음
   paramCostTiers: [[15, 1], [20, 3], [25, 4], [30, 5]],
-  // 기능훈련 확률성 성공률: [목표 기능레벨 상한, 성공률] — 근사치
-  skillRate: [[5, 0.9], [10, 0.8], [15, 0.5], [20, 0.3], [25, 0.1], [30, 0.08]],
+  // 기능훈련 확률성 성공률(%): 목표 기능레벨 → 성공률
+  // 출처: 스팀 가이드 "Chance-based Upgrade Success Rates per Level Tier" (정확 수치)
+  skillRatePct: {
+    2: 90, 3: 90, 4: 85, 5: 80, 6: 75, 7: 70, 8: 65, 9: 60, 10: 55,
+    11: 50, 12: 50, 13: 45, 14: 40, 15: 35, 16: 30, 17: 25, 18: 20, 19: 15, 20: 12,
+    21: 10, 22: 10, 23: 10, 24: 10, 25: 10, 26: 6, 27: 6, 28: 6, 29: 6, 30: 6,
+  },
+  // 습득 시 힘의구슬이 소모되는 마법·특수기술 (구슬 0개짜리는 평가와 무관하여 제외)
+  // 출처: 스팀 가이드 직업별 스킬표 (jobs: 주직업 또는 보조직업이 일치하면 습득 가능)
+  spellGroups: [
+    { name: '화염마법',            jobs: ['wizard'],
+      items: { '피라볼': 2, '피라실드': 1, '피라쇼크': 3, '피라스트라이크': 2, '파이어스톰': 5 } },
+    { name: '냉동마법',            jobs: ['wizard'],
+      items: { '아이겐볼': 2, '아이겐실드': 1, '아이겐웨이브': 3, '아이겐스트라이크': 2 } },
+    { name: '중성마법',            jobs: ['wizard', 'cleric'],
+      items: { '홀드': 3, '자이언트그로스': 1, '매지컬실드': 1, '위크니스': 1, '애시드클라우드': 2, '바인드': 4 } },
+    { name: '중성마법 (마법사)',   jobs: ['wizard'],
+      items: { '메이지아머': 3 } },
+    { name: '신성마법',            jobs: ['cleric'],
+      items: { '큐어': 1, '큐어패럴라이즈': 1, '블레스': 1, '커스': 1, '큐어디지즈': 1, '홀리볼': 2, '리저렉트': 4 } },
+    { name: '중성마법 (성직자)',   jobs: ['cleric'],
+      items: { '큐어펄스': 3, '파워실드': 5 } },
+    { name: '특수기술 (전사)',     jobs: ['warrior'],
+      items: { '실드블럭': 5 } },
+    { name: '특수기술 (검투사)',   jobs: ['fighter'],
+      items: { '버서크': 5 } },
+  ],
 };
 
 // ============================================================
@@ -286,7 +332,24 @@ function paramCost(jobKey, stats) {
 }
 
 function skillRateAt(target) {
-  return GAME.skillRate.find(([max]) => target <= max)[1];
+  return GAME.skillRatePct[target] / 100;
+}
+
+// 현재 직업 조합으로 습득 가능한 마법·특수기술 그룹
+function availableSpellGroups(mainJob, subJob) {
+  return GAME.spellGroups.filter((g) => g.jobs.includes(mainJob) || g.jobs.includes(subJob));
+}
+
+// 습득한 마법·특수기술에 소모된 구슬 (습득은 실패 없음 — 고정 비용)
+function spellCost(mainJob, subJob, learnedNames) {
+  const groups = availableSpellGroups(mainJob, subJob);
+  let total = 0;
+  for (const name of learnedNames || []) {
+    for (const g of groups) {
+      if (name in g.items) { total += g.items[name]; break; }
+    }
+  }
+  return total;
 }
 
 // 이론 최소: 모든 훈련이 1트에 성공했을 때 (레벨당 1개)
@@ -355,14 +418,15 @@ function evaluate(input) {
 
   const earned = earnedOrbs(input.level);
   const pc = paramCost(input.mainJob, input.stats);
+  const spellOrbs = spellCost(input.mainJob, input.subJob, input.spells);
   const skillMin = skillMinCost(input.skills);
   const skillExpected = skillExpectedCost(input.skills);
-  const skillActual = earned - pc.cost - unspent;
+  const skillActual = earned - pc.cost - spellOrbs - unspent;
 
   if (skillActual < 0) {
     return {
       ok: false, warnings,
-      errors: [`획득 가능한 구슬(${earned}개)보다 많이 소비된 캐릭터입니다. 레벨·파라메터·미사용 구슬 입력을 확인하세요.`],
+      errors: [`획득 가능한 구슬(${earned}개)보다 많이 소비된 캐릭터입니다. 레벨·파라메터·습득 마법·미사용 구슬 입력을 확인하세요.`],
     };
   }
 
@@ -384,7 +448,7 @@ function evaluate(input) {
 
   return {
     ok: true, errors, warnings,
-    earned, paramCost: pc.cost, bonus: pc.bonus, unspent,
+    earned, paramCost: pc.cost, bonus: pc.bonus, spellOrbs, unspent,
     skillMin, skillExpected, skillActual, adjustedSkillSpend: adjusted,
     wasted: Math.max(0, adjusted - skillMin),   // 실패로 소실된 것으로 추정되는 구슬
     savedOrbs: skillExpected - adjusted,        // 평균 유저 대비 절약분 (음수 = 초과 소모)
@@ -395,7 +459,8 @@ function evaluate(input) {
 const GodiusCalc = {
   GAME, STAT_KEYS, STAT_LABELS,
   orbsAtLevel, earnedOrbs, paramUpCost, rawStatCost, paramCost,
-  skillRateAt, skillMinCost, skillExpectedCost, gradeOf, evaluate,
+  skillRateAt, availableSpellGroups, spellCost,
+  skillMinCost, skillExpectedCost, gradeOf, evaluate,
 };
 if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
 </script>
@@ -450,6 +515,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
         renderSubJobs();
         renderStats();
         renderSkills();
+        renderSpells();
       });
       grid.appendChild(btn);
     }
@@ -470,6 +536,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
         state.subJob = key;
         renderSubJobs();
         renderSkills();
+        renderSpells();
       });
       grid.appendChild(btn);
     }
@@ -508,6 +575,25 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
     }
   }
 
+  function renderSpells() {
+    const section = $('#step-spells');
+    const box = $('#spell-groups');
+    box.innerHTML = '';
+    if (!state.mainJob || !state.subJob) { section.hidden = true; return; }
+    const groups = availableSpellGroups(state.mainJob, state.subJob);
+    section.hidden = groups.length === 0;
+    for (const g of groups) {
+      const div = document.createElement('div');
+      div.className = 'spell-group';
+      const chips = Object.entries(g.items)
+        .map(([name, beads]) =>
+          `<label class="spell-chip"><input type="checkbox" data-spell="${name}"><span>${name} <em>(${beads})</em></span></label>`)
+        .join('');
+      div.innerHTML = `<div class="field-label">${g.name}</div><div class="spell-chips">${chips}</div>`;
+      box.appendChild(div);
+    }
+  }
+
   function updateLevelHint() {
     const lv = parseInt($('#inp-level').value, 10);
     $('#level-hint').textContent =
@@ -525,11 +611,13 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
     document.querySelectorAll('#skill-grid input[data-skill]').forEach((el) => {
       skills[el.dataset.skill] = parseInt(el.value, 10);
     });
+    const spells = [...document.querySelectorAll('#spell-groups input[data-spell]:checked')]
+      .map((el) => el.dataset.spell);
     return {
       mainJob: state.mainJob,
       subJob: state.subJob,
       level: parseInt($('#inp-level').value, 10),
-      stats, skills,
+      stats, skills, spells,
       unspent: parseInt($('#inp-unspent').value, 10) || 0,
     };
   }
@@ -589,6 +677,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       <table class="ledger">
         <tr><th>레벨업으로 획득한 구슬</th><td>${r.earned}개</td></tr>
         <tr><th>파라메터에 사용 (실패 없음)</th><td>${r.paramCost}개</td></tr>
+        <tr><th>마법·특수기술 습득에 사용</th><td>${r.spellOrbs}개</td></tr>
         <tr><th>미사용 보유 구슬</th><td>${r.unspent}개</td></tr>
         <tr><th>기능 훈련에 사용된 구슬 (추정)</th><td>${r.adjustedSkillSpend}개</td></tr>
         <tr><th>기능 이론 최소 비용 (전부 1트 성공 시)</th><td>${r.skillMin}개</td></tr>
@@ -597,7 +686,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       </table>
       <h3>스탯 진단</h3>
       <ul class="comments">${comments}</ul>
-      <p class="fine-print">* 기능 성공률은 근사치 기반 추정이며, 퀘스트·이벤트로 얻은 추가 구슬은 계산에 포함되지 않습니다.</p>`;
+      <p class="fine-print">* 기능 성공률과 마법 습득 비용은 스팀 공식 가이드 수치 기준입니다. 퀘스트·이벤트로 얻은 추가 구슬은 계산에 포함되지 않습니다.</p>`;
     box.hidden = false;
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -623,6 +712,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
   renderSubJobs();
   renderStats();
   renderSkills();
+  renderSpells();
   updateLevelHint();
   $('#inp-level').addEventListener('input', updateLevelHint);
   $('#btn-eval').addEventListener('click', run);

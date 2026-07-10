@@ -13,7 +13,8 @@
       "PowerShell(git init D:\\\\AI\\\\Godius 2>&1)",
       "PowerShell(git -C D:\\\\AI\\\\Godius add -A)",
       "PowerShell(git -C D:\\\\AI\\\\Godius checkout -b feature/character-evaluator)",
-      "PowerShell(node D:\\\\AI\\\\Godius\\\\tests\\\\run-tests.mjs)"
+      "PowerShell(node D:\\\\AI\\\\Godius\\\\tests\\\\run-tests.mjs)",
+      "WebFetch(domain:steamcommunity.com)"
     ]
   }
 }
