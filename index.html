@@ -123,6 +123,20 @@
   .grade-F    { border-color: var(--red); } .grade-F .grade-letter { color: var(--red); }
   .grade-HOLD { border-color: var(--muted); } .grade-HOLD .grade-letter { color: var(--muted); font-size: 48px; }
   .warning { color: #e5c07b; background: rgba(229,192,123,.08); border-left: 3px solid #e5c07b; padding: 8px 12px; border-radius: 4px; }
+  .reroll-card {
+    margin-top: 14px; padding: 14px 18px;
+    background: var(--panel); border: 1px solid var(--border); border-left-width: 5px;
+    border-radius: 8px;
+  }
+  .reroll-head { font-size: 16px; font-weight: 700; color: var(--gold); }
+  .reroll-badge { padding: 2px 12px; border-radius: 12px; font-size: 13px; margin-left: 8px; }
+  .reroll-desc { margin: 8px 0 4px; }
+  .reroll-detail { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+  .reroll-detail b { color: var(--text); }
+  .reroll-success    { border-left-color: #ffd970; } .reroll-success .reroll-badge    { background: rgba(255,217,112,.2); color: #ffd970; }
+  .reroll-green      { border-left-color: var(--green); } .reroll-green .reroll-badge  { background: rgba(124,181,107,.2); color: var(--green); }
+  .reroll-yellow     { border-left-color: #e5c07b; } .reroll-yellow .reroll-badge     { background: rgba(229,192,123,.2); color: #e5c07b; }
+  .reroll-impossible { border-left-color: var(--red); } .reroll-impossible .reroll-badge { background: rgba(208,91,75,.2); color: #eea79b; }
   .result h3 { color: var(--gold); margin: 26px 0 10px; }
   .ledger { width: 100%; border-collapse: collapse; }
   .ledger th, .ledger td {
@@ -297,6 +311,41 @@ const GAME = {
     11: 50, 12: 50, 13: 45, 14: 40, 15: 35, 16: 30, 17: 25, 18: 20, 19: 15, 20: 12,
     21: 10, 22: 10, 23: 10, 24: 10, 25: 10, 26: 6, 27: 6, 28: 6, 29: 6, 30: 6,
   },
+  // 직업별 육성 팁 (공식 가이드 권장 + 스팀 가이드 기술 해금 조건 + 커뮤니티 공략 참고)
+  jobTips: {
+    warrior: [
+      '생성 시 STR·VIT를 15에 맞추는 것이 공식 가이드 권장입니다.',
+      '구슬은 주무기 기능(검술/부술/둔기술 중 하나)에 집중하세요. 무기술 25부터 상위 기술이 열립니다.',
+      '리뉴얼(자가 회복)은 무기술 25 + INT 15, 실드블럭은 무기술 25 + INT 25 + 구슬 5개가 필요하니 INT도 어느 정도 챙기면 좋습니다.',
+      '리세마라 정석: 주무기 기능 + 회피술 25/25.',
+    ],
+    fighter: [
+      '기본 STR12/VIT12라 6포인트만 쓰면 STR·VIT 15가 됩니다. 남는 보너스는 AGR·DEX에.',
+      '다룰 수 있는 무기가 많지만 부술·둔기술·창술 중 하나만 집중하는 게 구슬 효율이 좋습니다.',
+      '창술 10 이상이면 스위핑블로우 2단 찌르기가 강화되고, 버서크는 무기술 25 + 구슬 5개가 필요합니다.',
+      '리세마라 정석: 주무기 기능 + 회피술 25/25.',
+    ],
+    thief: [
+      '명중(HC)은 DEX, 회피(DC)는 AGR — 생성 시 DEX·AGR 15 우선.',
+      '주력 딜은 암살검술입니다 (양손검 + 보강갑옷 이하 착용 조건, 검술보다 강력).',
+      '트랩설치는 해체술 15 + 함정발견 10, 플래시뱅은 연막치기 25가 필요합니다.',
+      '리세마라 정석: 암살검술 + 회피술 25/25.',
+    ],
+    wizard: [
+      '생성 시 VIT·MEN·INT를 가급적 15에 맞추는 것이 공식 가이드 권장입니다.',
+      '화염·냉동 중 주력 원소 하나 + 중성마법 조합이 정석입니다. 판금 이상 갑옷을 입으면 마법을 못 쓰니 스태프류를 유지하세요.',
+      '고급 마법은 습득에도 구슬이 듭니다 (파이어스톰 5개, 피라쇼크 3개 등) — 리세 구간에는 아껴두세요.',
+      '리세마라 정석: 주력 마법 2계열 25/25.',
+    ],
+    cleric: [
+      '생성 시 VIT·MEN·INT를 가급적 15에 맞추는 것이 공식 가이드 권장입니다.',
+      '무기는 종교적 이유로 둔기류만 사용 가능 — 둔기술 + 신성마법이 주력입니다.',
+      '파워실드(구슬 5개)는 파티 필수기라 습득 비용을 미리 계산에 넣어두세요.',
+      '리세마라 정석: 둔기술 + 신성마법 25/25.',
+    ],
+  },
+  // 리세마라 기준: 레벨 50까지 기능 2개를 25/25로 만들면 성공 (구슬 잔량 무관)
+  reroll: { targetLevel: 50, skillGoal: 25, skillCount: 2 },
   // 습득 시 힘의구슬이 소모되는 마법·특수기술 (구슬 0개짜리는 평가와 무관하여 제외)
   // 출처: 스팀 가이드 직업별 스킬표 (jobs: 주직업 또는 보조직업이 일치하면 습득 가능)
   spellGroups: [
@@ -434,6 +483,34 @@ function skillExpectedCost(skillLevels) {
   return total;
 }
 
+// 리세마라 진단: 레벨 50까지 가장 높은 기능 2개를 25/25로 만들 수 있는지
+// 남은 자원 = (50레벨까지 앞으로 얻을 구슬) + 미사용 구슬. 파라메터 추가 투자는 없다고 가정.
+function rerollCheck(level, skills, unspent) {
+  const R = GAME.reroll;
+  if (level > R.targetLevel) return null;
+  const top = Object.entries(skills || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, R.skillCount)
+    .map(([name, lv]) => ({ name, lv }));
+  if (top.length < R.skillCount) return null;
+
+  const needMin = top.reduce((s, t) => s + Math.max(0, R.skillGoal - t.lv), 0);
+  let expected = 0;
+  for (const t of top) {
+    for (let v = t.lv + 1; v <= R.skillGoal; v++) expected += 1 / skillRateAt(v);
+  }
+  const future = earnedOrbs(R.targetLevel) - earnedOrbs(level);
+  const available = future + (unspent || 0);
+
+  let status;
+  if (top.every((t) => t.lv >= R.skillGoal)) status = 'success';
+  else if (available < needMin) status = 'impossible';
+  else if (available >= expected) status = 'green';
+  else status = 'yellow';
+
+  return { top, status, needMin, expected, future, available, targetLevel: R.targetLevel, goal: R.skillGoal };
+}
+
 function gradeOf(ratio) {
   if (ratio >= 1.3) return 'S';
   if (ratio >= 1.1) return 'A';
@@ -527,6 +604,7 @@ function evaluate(input) {
     wasted: Math.max(0, adjusted - skillMin),   // 실패로 소실된 것으로 추정되는 구슬
     savedOrbs: skillExpected - adjusted,        // 평균 유저 대비 절약분 (음수 = 초과 소모)
     ratio, grade, vitals,
+    reroll: rerollCheck(input.level, input.skills, unspent),
   };
 }
 
@@ -534,7 +612,7 @@ const GodiusCalc = {
   GAME, STAT_KEYS, STAT_LABELS,
   orbsAtLevel, earnedOrbs, paramUpCost, rawStatCost, paramCost,
   skillRateAt, availableSpellGroups, spellCost, autoAllocate, evaluateVitals,
-  skillMinCost, skillExpectedCost, gradeOf, evaluate,
+  skillMinCost, skillExpectedCost, gradeOf, rerollCheck, evaluate,
 };
 if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
 </script>
@@ -702,28 +780,34 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
     return Number.isInteger(n) ? String(n) : n.toFixed(1);
   }
 
-  function statComments(input) {
-    const job = GAME.jobs[input.mainJob];
-    const out = [];
-    const lowKeys = job.keyStats.filter((k) => input.stats[k] < 15);
-    if (lowKeys.length) {
-      out.push({ type: 'warn', text: `주직업(${job.name}) 핵심 스탯 ${lowKeys.map((k) => STAT_LABELS[k]).join(', ')}이(가) 15 미만입니다. 공식 가이드는 핵심 스탯을 15에 맞추는 것을 권장합니다.` });
-    } else {
-      out.push({ type: 'good', text: `핵심 스탯(${job.keyStats.join(', ')})이 모두 15 이상 — ${job.name}다운 탄탄한 배분입니다.` });
-    }
-    const over = STAT_KEYS.filter((k) => !job.keyStats.includes(k) && input.stats[k] > 20);
-    if (over.length) {
-      out.push({ type: 'warn', text: `비핵심 스탯 ${over.map((k) => STAT_LABELS[k]).join(', ')}에 20을 넘는 과투자가 보입니다. 16부터는 구슬이 3~5개씩 들어가는 구간이니 핵심 스탯 우선을 추천합니다.` });
-    }
-    return out;
-  }
-
   function renderResult(r, input) {
     const box = $('#result');
     const g = GRADE_INFO[r.grade];
     const warnHtml = r.warnings.map((w) => `<p class="warning">⚠ ${w}</p>`).join('');
-    const comments = statComments(input)
-      .map((c) => `<li class="${c.type}">${c.text}</li>`).join('');
+    const tips = (GAME.jobTips[input.mainJob] || [])
+      .map((t) => `<li>${t}</li>`).join('');
+
+    // 리세마라 진단 패널 (레벨 50 이하일 때만)
+    let rerollHtml = '';
+    if (r.reroll) {
+      const rr = r.reroll;
+      const RR_INFO = {
+        success:    ['성공!', '리세마라 성공 — 기능 2개 25/25 달성. 이제 본격 육성 구간입니다.'],
+        green:      ['청신호', '남은 구슬이 평균 기대치보다 많습니다. 평균 운이면 25/25 달성 가능해요.'],
+        yellow:     ['운 필요', `평균 기대치보다 구슬이 부족합니다 (약 ${fmt(rr.expected - rr.available)}개). 평균 이상의 운이 따라야 합니다.`],
+        impossible: ['실패 확정', '레벨 50까지 남은 구슬을 전부 부어도 최소 필요량에 못 미칩니다. 리세(재생성)를 추천합니다.'],
+      };
+      const [label, desc] = RR_INFO[rr.status];
+      const topText = rr.top.map((t) => `${t.name} Lv${t.lv}`).join(' · ');
+      rerollHtml = `
+        <div class="reroll-card reroll-${rr.status}">
+          <div class="reroll-head">리세마라 진단 <span class="reroll-badge">${label}</span></div>
+          <p class="reroll-desc">${desc}</p>
+          <p class="reroll-detail">기준: Lv${rr.targetLevel}까지 기능 2개 ${rr.goal}/${rr.goal} · 현재 상위 기능: ${topText}</p>
+          <p class="reroll-detail">남은 자원 <b>${rr.available}개</b> (레벨업 ${rr.future} + 보유 ${r.unspent})
+            / 최소 필요 <b>${rr.needMin}개</b> / 평균 기대 <b>${fmt(rr.expected)}개</b></p>
+        </div>`;
+    }
 
     // 운 게이지: 효율 지수 0~2를 0~100%로 (1.0 = 평균 = 중앙)
     let gaugeHtml = '';
@@ -771,6 +855,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
         <div class="grade-letter">${g.label}</div>
         <div class="grade-comment">${g.comment}</div>
       </div>
+      ${rerollHtml}
       ${warnHtml}
       ${gaugeHtml}
       <h3>힘의 구슬 수지</h3>
@@ -785,8 +870,8 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
         <tr class="waste"><th>실패로 소실된 것으로 추정되는 구슬</th><td>${r.wasted}개</td></tr>
       </table>
       ${vitalHtml}
-      <h3>스탯 진단</h3>
-      <ul class="comments">${comments}</ul>
+      <h3>${GAME.jobs[input.mainJob].name} 육성 팁</h3>
+      <ul class="comments">${tips}</ul>
       <p class="fine-print">* 기능 성공률과 마법 습득 비용은 스팀 공식 가이드 수치 기준입니다. 퀘스트·이벤트로 얻은 추가 구슬은 계산에 포함되지 않습니다.</p>`;
     box.hidden = false;
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });

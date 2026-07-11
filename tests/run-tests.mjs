@@ -85,6 +85,32 @@ test('evaluateVitals: 범위 초과는 over 판정', () => {
   const v = C.evaluateVitals('warrior', 30, { HP: 200 });
   assert.equal(v[0].verdict, 'over');
 });
+// --- 리세마라 진단 ---
+test('rerollCheck: 기능 2개 25 달성 시 success', () => {
+  const r = C.rerollCheck(50, { 검술: 25, 회피술: 25, 부술: 1 }, 0);
+  assert.equal(r.status, 'success');
+});
+test('rerollCheck: 남은 구슬로 최소 필요량 미달 시 impossible', () => {
+  const r = C.rerollCheck(49, { 검술: 20, 회피술: 20 }, 0);
+  assert.equal(r.future, 4); // 147 - 143
+  assert.equal(r.needMin, 10);
+  assert.equal(r.status, 'impossible');
+});
+test('rerollCheck: 기대치 이상 여유면 green', () => {
+  const r = C.rerollCheck(30, { 검술: 24, 회피술: 24 }, 0);
+  assert.equal(r.available, 80);
+  assert.equal(r.needMin, 2);
+  assert.ok(Math.abs(r.expected - 20) < 1e-9); // 2 x 1/0.1
+  assert.equal(r.status, 'green');
+});
+test('rerollCheck: 처음부터는 평균 기대치 부족 → yellow', () => {
+  const r = C.rerollCheck(10, { 검술: 1, 회피술: 1 }, 0);
+  assert.equal(r.status, 'yellow');
+});
+test('rerollCheck: 레벨 50 초과는 null', () => {
+  assert.equal(C.rerollCheck(51, { 검술: 25, 회피술: 25 }, 0), null);
+});
+
 // --- 등급 ---
 test('gradeOf 경계값', () => {
   assert.equal(C.gradeOf(1.3), 'S');
