@@ -131,6 +131,15 @@
   .ledger th { text-align: left; color: var(--muted); font-weight: 500; width: 70%; background: var(--panel); }
   .ledger td { text-align: right; font-weight: 700; }
   .ledger tr.waste th, .ledger tr.waste td { color: #eea79b; }
+  .vital-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 8px; }
+  .vitals th, .vitals td { width: auto; text-align: center; }
+  .vitals tr:first-child th { text-align: center; background: var(--panel-2); }
+  .vitals tr + tr th { text-align: center; color: var(--gold); font-weight: 700; }
+  .verdict { padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 700; }
+  .verdict-good { background: rgba(124,181,107,.18); color: var(--green); }
+  .verdict-avg  { background: rgba(109,163,216,.18); color: #6da3d8; }
+  .verdict-bad  { background: rgba(208,91,75,.18); color: #eea79b; }
+  .verdict-odd  { background: rgba(229,192,123,.18); color: #e5c07b; }
   .gauge-wrap { margin-top: 20px; }
   .gauge-title { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
   .gauge {
@@ -176,10 +185,16 @@
   </section>
 
   <section class="step" id="step-level">
-    <h2><span class="step-no">2</span> 레벨</h2>
+    <h2><span class="step-no">2</span> 레벨 · HP / MP / SP</h2>
     <div class="level-row">
       <input type="number" id="inp-level" min="2" max="99" value="30">
       <span class="hint" id="level-hint"></span>
+    </div>
+    <p class="hint" style="margin-top:12px">현재 HP/MP/SP를 입력하면 레벨업 성장운이 평균 이상인지 진단합니다 (선택 입력, 장비·버프 보정 없는 순수 최대치 기준).</p>
+    <div class="vital-grid">
+      <label class="stat-item"><span class="stat-name">HP</span><input type="number" id="inp-hp" min="0" placeholder="미입력"></label>
+      <label class="stat-item"><span class="stat-name">MP</span><input type="number" id="inp-mp" min="0" placeholder="미입력"></label>
+      <label class="stat-item"><span class="stat-name">SP</span><input type="number" id="inp-sp" min="0" placeholder="미입력"></label>
     </div>
   </section>
 
@@ -235,16 +250,22 @@ const STAT_LABELS = {
 
 const GAME = {
   jobs: {
+    // growth: 레벨업 1회당 HP/MP/SP 상승 범위 [최소, 최대] (커뮤니티 공략 수치, 주직업 기준)
     warrior: { name: '전사',   base: { STR: 12, AGR: 6, DEX: 10, INT: 6,  VIT: 6,  MEN: 6  },
-      skills: ['검술', '부술', '둔기술', '격술', '회피술'], keyStats: ['STR', 'VIT'] },
+      skills: ['검술', '부술', '둔기술', '격술', '회피술'], keyStats: ['STR', 'VIT'],
+      growth: { HP: [2, 3], MP: [1, 2], SP: [1, 3] } },
     fighter: { name: '검투사', base: { STR: 12, AGR: 6, DEX: 6,  INT: 6,  VIT: 12, MEN: 6  },
-      skills: ['부술', '둔기술', '회피술', '창술', '암살검술', '격술'], keyStats: ['STR', 'VIT'] },
+      skills: ['부술', '둔기술', '회피술', '창술', '암살검술', '격술'], keyStats: ['STR', 'VIT'],
+      growth: { HP: [2, 3], MP: [1, 2], SP: [1, 3] } },
     thief:   { name: '도둑',   base: { STR: 6,  AGR: 6, DEX: 6,  INT: 6,  VIT: 6,  MEN: 6  },
-      skills: ['부술', '암살검술', '회피술', '함정발견', '해체술', '연막치기', '떨어뜨리기'], keyStats: ['DEX', 'AGR'] },
+      skills: ['부술', '암살검술', '회피술', '함정발견', '해체술', '연막치기', '떨어뜨리기'], keyStats: ['DEX', 'AGR'],
+      growth: { HP: [1, 3], MP: [1, 3], SP: [1, 3] } },
     wizard:  { name: '마법사', base: { STR: 6,  AGR: 6, DEX: 6,  INT: 12, VIT: 6,  MEN: 10 },
-      skills: ['격술', '화염마법', '냉동마법', '중성마법'], keyStats: ['VIT', 'MEN', 'INT'] },
+      skills: ['격술', '화염마법', '냉동마법', '중성마법'], keyStats: ['VIT', 'MEN', 'INT'],
+      growth: { HP: [1, 2], MP: [2, 3], SP: [1, 2] } },
     cleric:  { name: '성직자', base: { STR: 6,  AGR: 6, DEX: 6,  INT: 10, VIT: 6,  MEN: 12 },
-      skills: ['둔기술', '신성마법', '중성마법'], keyStats: ['VIT', 'MEN', 'INT'] },
+      skills: ['둔기술', '신성마법', '중성마법'], keyStats: ['VIT', 'MEN', 'INT'],
+      growth: { HP: [1, 3], MP: [1, 3], SP: [1, 3] } },
   },
   subJobs: {
     warrior:    { name: '전사',     skills: ['검술', '부술', '둔기술', '격술', '회피술'] },
@@ -333,6 +354,49 @@ function paramCost(jobKey, stats) {
 
 function skillRateAt(target) {
   return GAME.skillRatePct[target] / 100;
+}
+
+// 공식 자동설정과 유사하게: 핵심 스탯부터 15까지 보너스를 배분한 초기 스탯 추정치
+function autoAllocate(jobKey) {
+  const job = GAME.jobs[jobKey];
+  const stats = { ...job.base };
+  let bonus = GAME.totalInitial - STAT_KEYS.reduce((s, k) => s + job.base[k], 0);
+  const order = [...job.keyStats, ...STAT_KEYS.filter((k) => !job.keyStats.includes(k))];
+  for (const k of order) {
+    const add = Math.min(bonus, GAME.creationMaxPerStat - stats[k]);
+    stats[k] += add;
+    bonus -= add;
+    if (bonus <= 0) break;
+  }
+  return stats;
+}
+
+// HP/MP/SP 성장 진단: 현재값이 직업별 기대 범위(초기치 + 레벨업 상승 누적)의 어디쯤인지
+// 초기치 = 생성 시 스탯×2 (HP←VIT, MP←MEN, SP←STR). 초기 스탯은 autoAllocate로 추정.
+const VITAL_SOURCE = { HP: 'VIT', MP: 'MEN', SP: 'STR' };
+function evaluateVitals(jobKey, level, vitals) {
+  const job = GAME.jobs[jobKey];
+  const init = autoAllocate(jobKey);
+  const levelUps = level - 1;
+  const out = [];
+  for (const key of ['HP', 'MP', 'SP']) {
+    const actual = vitals && vitals[key];
+    if (!Number.isInteger(actual) || actual <= 0) continue; // 미입력은 건너뜀
+    const [gMin, gMax] = job.growth[key];
+    const baseVal = init[VITAL_SOURCE[key]] * 2;
+    const min = baseVal + levelUps * gMin;
+    const max = baseVal + levelUps * gMax;
+    const avg = (min + max) / 2;
+    const pct = max === min ? 0.5 : Math.max(0, Math.min(1, (actual - min) / (max - min)));
+    let verdict;
+    if (actual > max) verdict = 'over';        // 범위 초과 (장비 보정 의심)
+    else if (actual < min) verdict = 'under';  // 범위 미달 (입력 확인 필요)
+    else if (pct >= 0.55) verdict = 'above';   // 평균 이상
+    else if (pct >= 0.45) verdict = 'average'; // 평균 수준
+    else verdict = 'below';                    // 평균 이하
+    out.push({ key, actual, min, max, avg, pct, verdict, diff: actual - avg });
+  }
+  return out;
 }
 
 // 현재 직업 조합으로 습득 가능한 마법·특수기술 그룹
@@ -436,6 +500,12 @@ function evaluate(input) {
     adjusted = skillMin;
   }
 
+  const vitals = evaluateVitals(input.mainJob, input.level, input.vitals);
+  for (const v of vitals) {
+    if (v.verdict === 'over') warnings.push(`${v.key}가 기대 최대치(${v.max})보다 높습니다. 장비·버프 보정이 빠진 순수 수치인지 확인하세요.`);
+    if (v.verdict === 'under') warnings.push(`${v.key}가 기대 최소치(${v.min})보다 낮습니다. 레벨·직업 입력을 확인하세요.`);
+  }
+
   let grade;
   let ratio = null;
   if (skillMin === 0) {
@@ -452,14 +522,14 @@ function evaluate(input) {
     skillMin, skillExpected, skillActual, adjustedSkillSpend: adjusted,
     wasted: Math.max(0, adjusted - skillMin),   // 실패로 소실된 것으로 추정되는 구슬
     savedOrbs: skillExpected - adjusted,        // 평균 유저 대비 절약분 (음수 = 초과 소모)
-    ratio, grade,
+    ratio, grade, vitals,
   };
 }
 
 const GodiusCalc = {
   GAME, STAT_KEYS, STAT_LABELS,
   orbsAtLevel, earnedOrbs, paramUpCost, rawStatCost, paramCost,
-  skillRateAt, availableSpellGroups, spellCost,
+  skillRateAt, availableSpellGroups, spellCost, autoAllocate, evaluateVitals,
   skillMinCost, skillExpectedCost, gradeOf, evaluate,
 };
 if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
@@ -479,21 +549,6 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
     F:    { label: 'F', comment: '기능 실패로 구슬을 갈아넣었습니다… 지금부터라도 보장성 위주로!' },
     HOLD: { label: '보류', comment: '구슬 비축형 캐릭터. 아직 기능 투자가 없어 평가하기 이릅니다.' },
   };
-
-  // 공식 자동설정과 유사하게: 핵심 스탯부터 15까지 보너스를 배분한 기본값
-  function autoAllocate(jobKey) {
-    const job = GAME.jobs[jobKey];
-    const stats = { ...job.base };
-    let bonus = GAME.totalInitial - STAT_KEYS.reduce((s, k) => s + job.base[k], 0);
-    const order = [...job.keyStats, ...STAT_KEYS.filter((k) => !job.keyStats.includes(k))];
-    for (const k of order) {
-      const add = Math.min(bonus, GAME.creationMaxPerStat - stats[k]);
-      stats[k] += add;
-      bonus -= add;
-      if (bonus <= 0) break;
-    }
-    return stats;
-  }
 
   function allowedSubJobs(mainKey) {
     const blocked = GAME.subJobBlock[mainKey] || [];
@@ -618,6 +673,11 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       subJob: state.subJob,
       level: parseInt($('#inp-level').value, 10),
       stats, skills, spells,
+      vitals: {
+        HP: parseInt($('#inp-hp').value, 10) || 0,
+        MP: parseInt($('#inp-mp').value, 10) || 0,
+        SP: parseInt($('#inp-sp').value, 10) || 0,
+      },
       unspent: parseInt($('#inp-unspent').value, 10) || 0,
     };
   }
@@ -666,6 +726,30 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
         </div>`;
     }
 
+    let vitalHtml = '';
+    if (r.vitals && r.vitals.length) {
+      const VERDICT = {
+        above:   ['평균 이상', 'good'],
+        average: ['평균 수준', 'avg'],
+        below:   ['평균 이하', 'bad'],
+        over:    ['범위 초과?', 'odd'],
+        under:   ['범위 미달?', 'odd'],
+      };
+      const rows = r.vitals.map((v) => {
+        const [label, cls] = VERDICT[v.verdict];
+        return `<tr><th>${v.key}</th><td>${v.actual}</td><td>${v.min} ~ ${v.max}</td><td>${fmt(v.avg)}</td>` +
+          `<td>${v.diff >= 0 ? '+' : ''}${fmt(v.diff)}</td>` +
+          `<td><span class="verdict verdict-${cls}">${label}</span> <span class="hint">(상위 ${Math.round((1 - v.pct) * 100)}%)</span></td></tr>`;
+      }).join('');
+      vitalHtml = `
+        <h3>HP · MP · SP 성장 진단</h3>
+        <table class="ledger vitals">
+          <tr><th>항목</th><th>현재</th><th>가능 범위 (Lv${input.level})</th><th>평균</th><th>평균 대비</th><th>판정</th></tr>
+          ${rows}
+        </table>
+        <p class="fine-print">* 레벨업 상승 범위는 커뮤니티 공략의 주직업 기준 수치이며, 보조직업 영향은 공식 미공개라 반영하지 않았습니다. 초기 스탯은 핵심 스탯 우선 배분으로 추정합니다.</p>`;
+    }
+
     box.innerHTML = `
       <div class="grade-card grade-${r.grade}">
         <div class="grade-letter">${g.label}</div>
@@ -684,6 +768,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
         <tr><th>기능 평균 기대 비용 (평균 유저)</th><td>${fmt(r.skillExpected)}개</td></tr>
         <tr class="waste"><th>실패로 소실된 것으로 추정되는 구슬</th><td>${r.wasted}개</td></tr>
       </table>
+      ${vitalHtml}
       <h3>스탯 진단</h3>
       <ul class="comments">${comments}</ul>
       <p class="fine-print">* 기능 성공률과 마법 습득 비용은 스팀 공식 가이드 수치 기준입니다. 퀘스트·이벤트로 얻은 추가 구슬은 계산에 포함되지 않습니다.</p>`;

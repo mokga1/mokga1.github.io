@@ -60,6 +60,31 @@ test('spellCost: 보조 성직자로 신성마법 습득 가능', () =>
 test('availableSpellGroups: 도둑+바드는 습득 가능 마법 없음', () =>
   assert.equal(C.availableSpellGroups('thief', 'bard').length, 0));
 
+// --- HP/MP/SP 성장 진단 ---
+test('autoAllocate: 전사 초기 배분 추정 (합 72)', () => {
+  const a = C.autoAllocate('warrior');
+  assert.deepEqual(a, { STR: 15, AGR: 15, DEX: 15, INT: 6, VIT: 15, MEN: 6 });
+});
+test('evaluateVitals: 전사 Lv30 HP 범위 88~117', () => {
+  const v = C.evaluateVitals('warrior', 30, { HP: 100 });
+  assert.equal(v.length, 1); // 미입력 MP/SP는 제외
+  assert.equal(v[0].min, 88);   // VIT15x2 + 29x2
+  assert.equal(v[0].max, 117);  // VIT15x2 + 29x3
+  assert.equal(v[0].verdict, 'below'); // (100-88)/29 = 0.41 < 0.45
+});
+test('evaluateVitals: 평균 이상 판정', () => {
+  const v = C.evaluateVitals('warrior', 30, { HP: 110 });
+  assert.equal(v[0].verdict, 'above'); // 0.76
+});
+test('evaluateVitals: 마법사 Lv10 MP 범위 48~57', () => {
+  const v = C.evaluateVitals('wizard', 10, { MP: 50 });
+  assert.equal(v[0].min, 48);  // MEN15x2 + 9x2
+  assert.equal(v[0].max, 57);  // MEN15x2 + 9x3
+});
+test('evaluateVitals: 범위 초과는 over 판정', () => {
+  const v = C.evaluateVitals('warrior', 30, { HP: 200 });
+  assert.equal(v[0].verdict, 'over');
+});
 // --- 등급 ---
 test('gradeOf 경계값', () => {
   assert.equal(C.gradeOf(1.3), 'S');
@@ -105,6 +130,12 @@ test('evaluate: 습득 마법 구슬이 수지에 반영', () => {
   assert.ok(r.ok);
   assert.equal(r.spellOrbs, 4);
   assert.equal(r.skillActual, 12); // 67 - 0 - 4 - 51
+});
+test('evaluate: vitals 결과와 초과 경고 포함', () => {
+  const r = C.evaluate({ ...baseInput, vitals: { HP: 200, MP: 0, SP: 0 } });
+  assert.ok(r.ok);
+  assert.equal(r.vitals.length, 1);
+  assert.ok(r.warnings.some((w) => w.includes('HP')));
 });
 test('evaluate: 기능 투자 없이 수지가 맞으면 HOLD', () => {
   const skills = Object.fromEntries(Object.keys(baseInput.skills).map((k) => [k, 1]));
