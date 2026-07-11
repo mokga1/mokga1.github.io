@@ -166,6 +166,12 @@ test('evaluate: vitals 결과와 초과 경고 포함', () => {
   assert.equal(r.vitals.length, 1);
   assert.ok(r.warnings.some((w) => w.includes('HP')));
 });
+test('evaluate: 리세마라 진단은 옵션 체크 시에만 포함', () => {
+  const off = C.evaluate({ ...baseInput });
+  assert.equal(off.reroll, null);
+  const on = C.evaluate({ ...baseInput, rerollMode: true });
+  assert.ok(on.reroll && typeof on.reroll.status === 'string');
+});
 test('evaluate: 기능 투자 없이 수지가 맞으면 HOLD', () => {
   const skills = Object.fromEntries(Object.keys(baseInput.skills).map((k) => [k, 1]));
   const r = C.evaluate({ ...baseInput, skills, unspent: 67 });
