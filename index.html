@@ -267,17 +267,15 @@ const GAME = {
       skills: ['둔기술', '신성마법', '중성마법'], keyStats: ['VIT', 'MEN', 'INT'],
       growth: { HP: [1, 3], MP: [1, 3], SP: [1, 3] } },
   },
+  // 스팀판(Eternal War)은 보조직업이 4종만 선택 가능
   subJobs: {
-    warrior:    { name: '전사',     skills: ['검술', '부술', '둔기술', '격술', '회피술'] },
-    thief:      { name: '도둑',     skills: ['부술', '암살검술', '회피술', '함정발견', '해체술', '연막치기', '떨어뜨리기'] },
     alchemist:  { name: '연금술사', skills: ['부술', '화학', '응급처치'] },
-    cleric:     { name: '성직자',   skills: ['둔기술', '신성마법', '중성마법'] },
     tailor:     { name: '재봉사',   skills: ['검술', '옷제작', '옷수선'] },
     blacksmith: { name: '대장장이', skills: ['둔기술', '무기제작', '무기수선'] },
     bard:       { name: '바드',     skills: ['창술', '주가'] },
   },
-  // 주직업별 선택 불가 보조직업 (검투사는 성직자/연금술사 불가) + 주직업과 동일 보조 불가
-  subJobBlock: { fighter: ['cleric', 'alchemist'] },
+  // 주직업별 선택 불가 보조직업 (검투사는 연금술사 불가)
+  subJobBlock: { fighter: ['alchemist'] },
   totalInitial: 72,        // 생성 시 전체 파라메터 합
   creationMaxPerStat: 15,  // 생성 시 스탯당 최대치
   statMax: 30,             // 파라메터 최대치

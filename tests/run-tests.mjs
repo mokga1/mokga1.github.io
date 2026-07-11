@@ -55,8 +55,8 @@ test('spellCost: 마법사 파이어스톰5 + 홀드3 = 8', () =>
   assert.equal(C.spellCost('wizard', 'bard', ['파이어스톰', '홀드']), 8));
 test('spellCost: 직업 조합에 없는 마법은 무시', () =>
   assert.equal(C.spellCost('warrior', 'bard', ['큐어', '파이어스톰']), 0));
-test('spellCost: 보조 성직자로 신성마법 습득 가능', () =>
-  assert.equal(C.spellCost('warrior', 'cleric', ['리저렉트', '실드블럭']), 9));
+test('spellCost: 주직업 성직자는 신성마법 습득 가능 (타직업 기술은 무시)', () =>
+  assert.equal(C.spellCost('cleric', 'tailor', ['리저렉트', '실드블럭']), 4));
 test('availableSpellGroups: 도둑+바드는 습득 가능 마법 없음', () =>
   assert.equal(C.availableSpellGroups('thief', 'bard').length, 0));
 
@@ -126,8 +126,11 @@ test('evaluate: 이론 최소보다 적게 쓴 모순 입력은 경고 + 최상 
   assert.equal(r.grade, 'S'); // 12.43/9 ≈ 1.38 → S
 });
 test('evaluate: 습득 마법 구슬이 수지에 반영', () => {
-  const r = C.evaluate({ ...baseInput, subJob: 'cleric', spells: ['리저렉트'], unspent: 51 });
-  assert.ok(r.ok);
+  const r = C.evaluate({
+    ...baseInput, mainJob: 'cleric', subJob: 'tailor', spells: ['리저렉트'], unspent: 51,
+    stats: { STR: 12, AGR: 9, DEX: 6, INT: 15, VIT: 15, MEN: 15 },
+  });
+  assert.ok(r.ok, r.errors && r.errors.join(','));
   assert.equal(r.spellOrbs, 4);
   assert.equal(r.skillActual, 12); // 67 - 0 - 4 - 51
 });
@@ -147,8 +150,12 @@ test('evaluate: 획득량 초과 소비는 오류', () => {
   const r = C.evaluate({ ...baseInput, level: 2, stats: { STR: 20, AGR: 12, DEX: 15, INT: 10, VIT: 15, MEN: 10 } });
   assert.equal(r.ok, false);
 });
-test('evaluate: 검투사 + 성직자 보조 불가', () => {
-  const r = C.evaluate({ ...baseInput, mainJob: 'fighter', subJob: 'cleric', stats: { STR: 15, AGR: 9, DEX: 9, INT: 9, VIT: 15, MEN: 15 } });
+test('evaluate: 검투사 + 연금술사 보조 불가', () => {
+  const r = C.evaluate({ ...baseInput, mainJob: 'fighter', subJob: 'alchemist', stats: { STR: 15, AGR: 9, DEX: 9, INT: 9, VIT: 15, MEN: 15 } });
+  assert.equal(r.ok, false);
+});
+test('evaluate: 스팀판에 없는 보조직업(전사)은 오류', () => {
+  const r = C.evaluate({ ...baseInput, subJob: 'warrior' });
   assert.equal(r.ok, false);
 });
 test('evaluate: 기본값 미만 스탯은 오류', () => {
