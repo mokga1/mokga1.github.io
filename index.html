@@ -188,6 +188,7 @@
   .comments li.good { color: var(--green); }
   .comments li.warn { color: #e5c07b; }
   .fine-print { color: var(--muted); font-size: 12px; margin-top: 22px; }
+  .ad-box { margin-top: 32px; min-height: 0; }
   .site-footer { margin-top: 40px; text-align: center; color: var(--muted); font-size: 12px; }
   .site-footer a { color: var(--gold); }
   @media (max-width: 560px) {
@@ -261,6 +262,8 @@
   <div id="validation" class="validation" hidden></div>
 
   <section id="result" class="result" hidden></section>
+
+  <div id="ad-footer" class="ad-box"></div>
 
   <footer class="site-footer">
     <p>데이터 출처: <a href="https://www.godius.co.kr/" target="_blank" rel="noopener">가디우스 공식 홈페이지</a> ·
@@ -926,6 +929,36 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
     $(sel).addEventListener('click', () => { $('#result').hidden = true; });
   });
 })();
+</script>
+
+<script id="godius-adsense">
+// ============================================================
+// Google AdSense 설정
+// 1) https://adsense.google.com 에서 가입 후 사이트(GitHub Pages 주소)를 등록해 승인받는다.
+// 2) 발급받은 게시자 ID를 ADSENSE_CLIENT에 입력한다. 예: 'ca-pub-1234567890123456'
+// 3) (선택) 광고 단위를 만들었으면 슬롯 ID를 ADSENSE_SLOT에 입력한다.
+// ID가 비어 있으면 광고 코드는 전혀 로드되지 않는다.
+// ============================================================
+const ADSENSE_CLIENT = '';
+const ADSENSE_SLOT = '';
+
+if (ADSENSE_CLIENT) {
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + ADSENSE_CLIENT;
+  s.crossOrigin = 'anonymous';
+  document.head.appendChild(s);
+
+  const ins = document.createElement('ins');
+  ins.className = 'adsbygoogle';
+  ins.style.display = 'block';
+  ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
+  if (ADSENSE_SLOT) ins.setAttribute('data-ad-slot', ADSENSE_SLOT);
+  ins.setAttribute('data-ad-format', 'auto');
+  ins.setAttribute('data-full-width-responsive', 'true');
+  document.getElementById('ad-footer').appendChild(ins);
+  (window.adsbygoogle = window.adsbygoogle || []).push({});
+}
 </script>
 </body>
 </html>
