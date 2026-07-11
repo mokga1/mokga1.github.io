@@ -131,7 +131,12 @@
   .ledger th { text-align: left; color: var(--muted); font-weight: 500; width: 70%; background: var(--panel); }
   .ledger td { text-align: right; font-weight: 700; }
   .ledger tr.waste th, .ledger tr.waste td { color: #eea79b; }
-  .vital-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 8px; }
+  .vital-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 8px; }
+  .growth-info {
+    margin: 10px 0 0; padding: 8px 14px; font-size: 13px; color: var(--muted);
+    background: var(--panel-2); border-left: 3px solid var(--gold); border-radius: 4px;
+  }
+  .growth-info b { color: var(--gold); }
   .vitals th, .vitals td { width: auto; text-align: center; }
   .vitals tr:first-child th { text-align: center; background: var(--panel-2); }
   .vitals tr + tr th { text-align: center; color: var(--gold); font-weight: 700; }
@@ -191,10 +196,11 @@
       <span class="hint" id="level-hint"></span>
     </div>
     <p class="hint" style="margin-top:12px">현재 HP/MP/SP를 입력하면 레벨업 성장운이 평균 이상인지 진단합니다 (선택 입력, 장비·버프 보정 없는 순수 최대치 기준).</p>
+    <p class="growth-info" id="growth-info"></p>
     <div class="vital-grid">
-      <label class="stat-item"><span class="stat-name">HP</span><input type="number" id="inp-hp" min="0" placeholder="미입력"></label>
-      <label class="stat-item"><span class="stat-name">MP</span><input type="number" id="inp-mp" min="0" placeholder="미입력"></label>
-      <label class="stat-item"><span class="stat-name">SP</span><input type="number" id="inp-sp" min="0" placeholder="미입력"></label>
+      <label class="stat-item"><span class="stat-name">HP</span><input type="number" id="inp-hp" min="0" placeholder="미입력"><span class="stat-base" id="range-HP"></span></label>
+      <label class="stat-item"><span class="stat-name">MP</span><input type="number" id="inp-mp" min="0" placeholder="미입력"><span class="stat-base" id="range-MP"></span></label>
+      <label class="stat-item"><span class="stat-name">SP</span><input type="number" id="inp-sp" min="0" placeholder="미입력"><span class="stat-base" id="range-SP"></span></label>
     </div>
   </section>
 
@@ -569,6 +575,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
         renderStats();
         renderSkills();
         renderSpells();
+        updateGrowthInfo();
       });
       grid.appendChild(btn);
     }
@@ -644,6 +651,17 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
         .join('');
       div.innerHTML = `<div class="field-label">${g.name}</div><div class="spell-chips">${chips}</div>`;
       box.appendChild(div);
+    }
+  }
+
+  function updateGrowthInfo() {
+    if (!state.mainJob) return;
+    const job = GAME.jobs[state.mainJob];
+    $('#growth-info').innerHTML =
+      `<b>${job.name}</b> 레벨업 1회당 상승 범위 — ` +
+      ['HP', 'MP', 'SP'].map((k) => `${k} <b>+${job.growth[k][0]}~${job.growth[k][1]}</b>`).join(' · ');
+    for (const k of ['HP', 'MP', 'SP']) {
+      $(`#range-${k}`).textContent = `+${job.growth[k][0]}~${job.growth[k][1]}/Lv`;
     }
   }
 
@@ -796,6 +814,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
   renderStats();
   renderSkills();
   renderSpells();
+  updateGrowthInfo();
   updateLevelHint();
   $('#inp-level').addEventListener('input', updateLevelHint);
   $('#btn-eval').addEventListener('click', run);
