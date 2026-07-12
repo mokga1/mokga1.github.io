@@ -2,7 +2,7 @@
 
 [Godius Eternal War](https://store.steampowered.com/app/4559140/Godius_Eternal_War/) 캐릭터가 잘 컸는지 힘의 구슬 수지로 진단하는 웹 도구입니다.
 
-**사용하기:** https://mokga1.github.io/godius-evaluator/
+**사용하기:** https://mokga1.github.io/
 
 ## 기능
 
