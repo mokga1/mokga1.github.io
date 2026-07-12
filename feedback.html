@@ -4,14 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>피드백 게시판 — 가디우스 캐릭터 평가기</title>
-<meta name="description" content="가디우스 캐릭터 육성 평가기에 대한 의견, 버그 제보, 수치 정정 요청을 남겨주세요. 방문자끼리 글과 답글을 함께 볼 수 있는 공개 게시판입니다.">
+<meta name="description" content="가디우스 캐릭터 육성 평가기에 대한 의견, 버그 제보, 수치 정정 요청을 남겨주세요. 로그인 없이 이름만 적으면 누구나 글을 남길 수 있습니다.">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1461632031345453" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="guide/style.css">
+<style>
+  /* 피드백 페이지: 입력창을 위로 끌어올려 바로 쓸 수 있게 */
+  .site-header { padding: 22px 16px 0; }
+  .site-header h1 { font-size: 23px; }
+  nav.guide-nav { margin-top: 12px; }
+  main { padding-top: 6px; }
+  .board-card { margin-top: 14px; padding: 14px 18px; }
+  .board-note {
+    color: var(--muted); font-size: 13px; line-height: 1.7;
+    margin: 16px 4px 0; padding-top: 14px; border-top: 1px solid var(--border);
+  }
+  .board-note b { color: var(--gold); }
+</style>
 </head>
 <body>
 <header class="site-header">
-  <h1>피드백 게시판</h1>
-  <p class="subtitle">평가기에 대한 의견 · 버그 제보 · 수치 정정 요청을 남겨주세요</p>
+  <h1>💬 피드백</h1>
+  <p class="subtitle">로그인 없이 이름만 적으면 바로 남길 수 있어요 · 스팸 방지를 위해 승인 후 공개됩니다</p>
 </header>
 <nav class="guide-nav">
   <a href="./">캐릭터 평가기</a>
@@ -24,19 +37,7 @@
   <a href="feedback.html" class="current">💬 피드백</a>
 </nav>
 <main>
-  <section class="card">
-    <h2>무엇이든 남겨주세요</h2>
-    <ul>
-      <li>평가 결과가 실제 게임과 다르게 나오는 경우 (직업·수치 등)</li>
-      <li>기능 성공률·마법 습득 비용·HP/MP/SP 성장 범위 등 <b>데이터 정정 제보</b></li>
-      <li>추가되면 좋을 기능, 사용하다 발견한 버그</li>
-      <li>그 외 자유로운 의견</li>
-    </ul>
-    <p class="hint">로그인 없이 이름만 적으면 누구나 글을 남길 수 있습니다.
-    스팸 방지를 위해 남겨진 글은 <b>관리자 확인(승인) 후</b> 게시판에 공개됩니다.</p>
-  </section>
-
-  <section class="card">
+  <section class="card board-card">
     <div id="cusdis_thread"
       data-host="https://cusdis.com"
       data-app-id="a97711ab-d29c-4ed0-90ee-1794f2dc00f3"
@@ -46,11 +47,13 @@
       data-theme="dark"></div>
     <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
     <noscript>피드백 게시판을 보려면 자바스크립트를 켜주세요.</noscript>
-  </section>
 
-  <footer class="site-footer">
-    <p><a href="./">← 캐릭터 평가기로 돌아가기</a></p>
-  </footer>
+    <p class="board-note">
+      <b>이런 의견이 특히 도움돼요</b> — 평가 결과가 실제 게임과 다른 경우(직업·수치),
+      기능 성공률·마법 습득 비용·HP/MP/SP 성장 범위 같은 <b>데이터 정정 제보</b>,
+      추가되면 좋을 기능이나 버그 제보. · <a href="./">← 평가기로 돌아가기</a>
+    </p>
+  </section>
 </main>
 </body>
 </html>
