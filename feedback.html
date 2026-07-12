@@ -8,12 +8,79 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1461632031345453" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="guide/style.css">
 <style>
-  /* 피드백 페이지: 입력창을 위로 끌어올려 바로 쓸 수 있게 */
   .site-header { padding: 22px 16px 0; }
   .site-header h1 { font-size: 23px; }
   nav.guide-nav { margin-top: 12px; }
   main { padding-top: 6px; }
-  .board-card { margin-top: 14px; padding: 14px 18px; }
+  .board-card { margin-top: 14px; padding: 18px 20px; }
+
+  /* ── 작성 폼 ── */
+  .fb-form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .fb-form input[type=text] {
+    background: #171009; color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-size: 15px; width: 180px;
+    font-family: inherit;
+  }
+  .fb-form textarea {
+    background: #171009; color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-size: 15px; width: 100%;
+    min-height: 84px; resize: vertical; font-family: inherit;
+    margin-top: 10px;
+  }
+  .fb-form input:focus, .fb-form textarea:focus { outline: none; border-color: var(--gold); }
+  .fb-form-actions { display: flex; align-items: center; gap: 14px; margin-top: 10px; flex-wrap: wrap; }
+  #fb-submit {
+    background: linear-gradient(180deg, #e0b45e, #b8853a);
+    color: #241207; border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 800; padding: 10px 28px;
+    cursor: pointer; letter-spacing: 1px;
+  }
+  #fb-submit:hover { filter: brightness(1.08); }
+  #fb-submit:disabled { opacity: .5; cursor: wait; }
+  .fb-replying {
+    display: none; font-size: 13px; color: var(--gold);
+    background: rgba(212,164,76,.12); border: 1px solid var(--gold);
+    border-radius: 8px; padding: 4px 12px;
+  }
+  .fb-replying button {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 13px; padding: 0 0 0 8px;
+  }
+  .fb-replying button:hover { color: var(--text); }
+  .fb-msg { font-size: 13px; margin-top: 10px; display: none; padding: 8px 12px; border-radius: 6px; }
+  .fb-msg.ok { display: block; color: var(--green); background: rgba(124,181,107,.12); border-left: 3px solid var(--green); }
+  .fb-msg.err { display: block; color: #eea79b; background: rgba(208,91,75,.12); border-left: 3px solid var(--red); }
+
+  /* ── 댓글 목록 ── */
+  .fb-list-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .fb-list-head h2 { margin: 0; font-size: 17px; }
+  .fb-count { color: var(--muted); font-size: 13px; }
+  .fb-comment { padding: 14px 2px 12px; border-bottom: 1px solid var(--border); }
+  .fb-comment:last-child { border-bottom: none; padding-bottom: 4px; }
+  .fb-meta { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .fb-nick { color: var(--gold); font-weight: 700; font-size: 15px; }
+  .fb-mod-badge {
+    font-size: 11px; font-weight: 700; color: #241b14;
+    background: var(--gold); border-radius: 10px; padding: 1px 8px;
+  }
+  .fb-date { color: var(--muted); font-size: 12px; }
+  .fb-content { margin: 6px 0 8px; white-space: pre-wrap; word-break: break-word; line-height: 1.65; }
+  .fb-reply-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 6px; padding: 2px 12px; font-size: 12px; cursor: pointer;
+  }
+  .fb-reply-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .fb-replies { margin: 10px 0 0 18px; padding-left: 14px; border-left: 2px solid var(--border); }
+  .fb-replies .fb-comment { border-bottom: none; padding: 10px 0 4px; }
+  .fb-empty, .fb-loading { color: var(--muted); text-align: center; padding: 24px 0; }
+  #fb-more {
+    display: none; margin: 14px auto 0; background: var(--panel-2);
+    color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 26px; font-size: 14px; cursor: pointer;
+  }
+  #fb-more:hover { border-color: var(--gold); }
   .board-note {
     color: var(--muted); font-size: 13px; line-height: 1.7;
     margin: 16px 4px 0; padding-top: 14px; border-top: 1px solid var(--border);
@@ -37,16 +104,31 @@
   <a href="feedback.html" class="current">💬 피드백</a>
 </nav>
 <main>
+  <!-- 작성 폼 -->
+  <section class="card board-card fb-form">
+    <div class="fb-form-row">
+      <input type="text" id="fb-nick" maxlength="20" placeholder="닉네임">
+      <span class="fb-replying" id="fb-replying">
+        <span id="fb-replying-to"></span>님에게 답글 작성 중
+        <button type="button" id="fb-cancel-reply">✕ 취소</button>
+      </span>
+    </div>
+    <textarea id="fb-content" maxlength="2000" placeholder="의견·버그 제보·수치 정정 등 무엇이든 남겨주세요"></textarea>
+    <div class="fb-form-actions">
+      <button type="button" id="fb-submit">등록</button>
+      <span class="hint">등록한 글은 관리자 승인 후 아래 목록에 공개됩니다.</span>
+    </div>
+    <p class="fb-msg" id="fb-msg"></p>
+  </section>
+
+  <!-- 댓글 목록 -->
   <section class="card board-card">
-    <div id="cusdis_thread"
-      data-host="https://cusdis.com"
-      data-app-id="a97711ab-d29c-4ed0-90ee-1794f2dc00f3"
-      data-page-id="feedback"
-      data-page-url="https://mokga1.github.io/feedback.html"
-      data-page-title="가디우스 캐릭터 평가기 피드백"
-      data-theme="dark"></div>
-    <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
-    <noscript>피드백 게시판을 보려면 자바스크립트를 켜주세요.</noscript>
+    <div class="fb-list-head">
+      <h2>남겨진 의견</h2>
+      <span class="fb-count" id="fb-count"></span>
+    </div>
+    <div id="fb-list"><p class="fb-loading">불러오는 중…</p></div>
+    <button type="button" id="fb-more">더 보기</button>
 
     <p class="board-note">
       <b>이런 의견이 특히 도움돼요</b> — 평가 결과가 실제 게임과 다른 경우(직업·수치),
@@ -55,5 +137,146 @@
     </p>
   </section>
 </main>
+
+<script>
+(function () {
+  // Cusdis Open API를 직접 호출하는 자체 게시판 UI (기본 iframe 위젯 미사용)
+  const HOST = 'https://cusdis.com';
+  const APP_ID = 'a97711ab-d29c-4ed0-90ee-1794f2dc00f3';
+  const PAGE_ID = 'feedback';
+  const PAGE_URL = 'https://mokga1.github.io/feedback.html';
+  const PAGE_TITLE = '가디우스 캐릭터 평가기 피드백';
+
+  const $ = (s) => document.querySelector(s);
+  let page = 1;
+  let pageCount = 1;
+  let replyTo = null; // { id, nickname }
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+
+  function commentNode(c, isReply) {
+    const div = document.createElement('div');
+    div.className = 'fb-comment';
+    const meta = document.createElement('div');
+    meta.className = 'fb-meta';
+    const nick = document.createElement('span');
+    nick.className = 'fb-nick';
+    nick.textContent = c.moderator ? (c.moderator.displayName || c.by_nickname || '관리자') : (c.by_nickname || '익명');
+    meta.appendChild(nick);
+    if (c.moderator) {
+      const badge = document.createElement('span');
+      badge.className = 'fb-mod-badge';
+      badge.textContent = '관리자';
+      meta.appendChild(badge);
+    }
+    const date = document.createElement('span');
+    date.className = 'fb-date';
+    date.textContent = fmtDate(c.createdAt);
+    meta.appendChild(date);
+    div.appendChild(meta);
+
+    const body = document.createElement('div');
+    body.className = 'fb-content';
+    body.textContent = c.content || ''; // textContent 렌더링 = XSS 안전
+    div.appendChild(body);
+
+    if (!isReply) {
+      const btn = document.createElement('button');
+      btn.className = 'fb-reply-btn';
+      btn.textContent = '답글';
+      btn.addEventListener('click', () => {
+        replyTo = { id: c.id, nickname: nick.textContent };
+        $('#fb-replying-to').textContent = replyTo.nickname;
+        $('#fb-replying').style.display = 'inline-block';
+        $('#fb-content').focus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      div.appendChild(btn);
+
+      const replies = (c.replies && c.replies.data) || [];
+      if (replies.length) {
+        const wrap = document.createElement('div');
+        wrap.className = 'fb-replies';
+        replies.forEach((r) => wrap.appendChild(commentNode(r, true)));
+        div.appendChild(wrap);
+      }
+    }
+    return div;
+  }
+
+  async function load(pageNo, append) {
+    const list = $('#fb-list');
+    if (!append) list.innerHTML = '<p class="fb-loading">불러오는 중…</p>';
+    try {
+      const res = await fetch(`${HOST}/api/open/comments?appId=${APP_ID}&pageId=${PAGE_ID}&page=${pageNo}`);
+      const json = await res.json();
+      const d = json.data || {};
+      const comments = d.data || [];
+      pageCount = d.pageCount || 1;
+      page = pageNo;
+      if (!append) list.innerHTML = '';
+      if (comments.length === 0 && !append) {
+        list.innerHTML = '<p class="fb-empty">아직 등록된 의견이 없습니다. 첫 의견을 남겨주세요!</p>';
+      } else {
+        comments.forEach((c) => list.appendChild(commentNode(c, false)));
+      }
+      $('#fb-count').textContent = d.commentCount ? `총 ${d.commentCount}개` : '';
+      $('#fb-more').style.display = page < pageCount ? 'block' : 'none';
+    } catch (e) {
+      if (!append) list.innerHTML = '<p class="fb-empty">목록을 불러오지 못했습니다. 잠시 후 새로고침 해주세요.</p>';
+    }
+  }
+
+  function showMsg(text, ok) {
+    const m = $('#fb-msg');
+    m.textContent = text;
+    m.className = 'fb-msg ' + (ok ? 'ok' : 'err');
+  }
+
+  async function submit() {
+    const nickname = $('#fb-nick').value.trim();
+    const content = $('#fb-content').value.trim();
+    if (!nickname) { showMsg('닉네임을 입력해주세요.', false); $('#fb-nick').focus(); return; }
+    if (!content) { showMsg('내용을 입력해주세요.', false); $('#fb-content').focus(); return; }
+    const btn = $('#fb-submit');
+    btn.disabled = true;
+    try {
+      const body = {
+        appId: APP_ID, pageId: PAGE_ID, content, nickname,
+        pageUrl: PAGE_URL, pageTitle: PAGE_TITLE,
+      };
+      if (replyTo) body.parentId = replyTo.id;
+      const res = await fetch(`${HOST}/api/open/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      $('#fb-content').value = '';
+      cancelReply();
+      showMsg('등록됐습니다! 관리자 승인 후 목록에 공개됩니다. 소중한 의견 감사합니다 🙏', true);
+    } catch (e) {
+      showMsg('등록에 실패했습니다. 잠시 후 다시 시도해주세요.', false);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function cancelReply() {
+    replyTo = null;
+    $('#fb-replying').style.display = 'none';
+  }
+
+  $('#fb-submit').addEventListener('click', submit);
+  $('#fb-cancel-reply').addEventListener('click', cancelReply);
+  $('#fb-more').addEventListener('click', () => load(page + 1, true));
+  load(1, false);
+})();
+</script>
 </body>
 </html>
