@@ -50,6 +50,25 @@ test('skillExpectedCost: 레벨1은 0', () => assert.equal(C.skillExpectedCost({
 test('skillRateAt: 30레벨 성공률 6%', () => assert.equal(C.skillRateAt(30), 0.06));
 test('skillRateAt: 20레벨 성공률 12%', () => assert.equal(C.skillRateAt(20), 0.12));
 
+// --- 보장성 비용과 합리적 선택 ---
+test('skillGuaranteedAt: 10→2개, 20→5개, 30→15개', () => {
+  assert.equal(C.skillGuaranteedAt(10), 2);
+  assert.equal(C.skillGuaranteedAt(20), 5);
+  assert.equal(C.skillGuaranteedAt(30), 15);
+});
+test('skillStepCost: 저레벨은 확률성이 유리 (11레벨 = 2)', () =>
+  assert.equal(C.skillStepCost(11), 2)); // 1/0.5 = 2 < 보장성 3
+test('skillStepCost: 19~20레벨은 보장성이 유리 (= 5)', () => {
+  assert.equal(C.skillStepCost(19), 5); // 1/0.15 = 6.67 > 5
+  assert.equal(C.skillStepCost(20), 5); // 1/0.12 = 8.33 > 5
+});
+test('skillStepCost: 26~30레벨은 보장성이 유리 (= 15)', () =>
+  assert.equal(C.skillStepCost(30), 15)); // 1/0.06 = 16.67 > 15
+test('skillExpectedCost: 1→30 합리적 기대 비용 ≈ 171.35', () => {
+  const v = C.skillExpectedCost({ 검술: 30 });
+  assert.ok(Math.abs(v - 171.3466) < 0.001, `got ${v}`);
+});
+
 // --- 마법 습득 비용 ---
 test('spellCost: 마법사 파이어스톰5 + 홀드3 = 8', () =>
   assert.equal(C.spellCost('wizard', 'bard', ['파이어스톰', '홀드']), 8));
