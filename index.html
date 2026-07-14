@@ -253,6 +253,7 @@
   <section class="step" id="step-skills">
     <h2><span class="step-no">4</span> 보유 기능 레벨</h2>
     <p class="hint">주직업·보조직업 조합에 따라 기능 목록이 표시됩니다. (생성 시 레벨 1부터 시작)</p>
+    <p class="growth-info" id="training-advice"></p>
     <div class="skill-grid" id="skill-grid"></div>
   </section>
 
@@ -516,6 +517,22 @@ function skillStepCost(target) {
   return Math.min(1 / skillRateAt(target), skillGuaranteedAt(target));
 }
 
+// 레벨 구간별로 확률성/보장성 중 어느 쪽이 유리한지 계산 (수치표 기반 자동 산출)
+// 반환: [{from, to, best: 'chance'|'guaranteed'|'tie'}]
+function trainingAdvice() {
+  const out = [];
+  for (let v = 2; v <= GAME.skillMax; v++) {
+    const chance = 1 / skillRateAt(v);
+    const guaranteed = skillGuaranteedAt(v);
+    const best = Math.abs(chance - guaranteed) < 1e-9 ? 'tie'
+      : (chance < guaranteed ? 'chance' : 'guaranteed');
+    const last = out[out.length - 1];
+    if (last && last.best === best) last.to = v;
+    else out.push({ from: v, to: v, best });
+  }
+  return out;
+}
+
 // 평균 기대치: 합리적 유저(확률성/보장성 중 유리한 쪽 선택)의 기대 소모량 합
 function skillExpectedCost(skillLevels) {
   let total = 0;
@@ -653,7 +670,7 @@ function evaluate(input) {
 const GodiusCalc = {
   GAME, STAT_KEYS, STAT_LABELS,
   orbsAtLevel, earnedOrbs, paramUpCost, rawStatCost, paramCost,
-  skillRateAt, skillGuaranteedAt, skillStepCost,
+  skillRateAt, skillGuaranteedAt, skillStepCost, trainingAdvice,
   availableSpellGroups, spellCost, autoAllocate, evaluateVitals,
   skillMinCost, skillExpectedCost, gradeOf, rerollCheck, evaluate,
 };
@@ -773,6 +790,18 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       div.innerHTML = `<div class="field-label">${g.name}</div><div class="spell-chips">${chips}</div>`;
       box.appendChild(div);
     }
+  }
+
+  function renderTrainingAdvice() {
+    const LABEL = { chance: '확률성 유리', guaranteed: '보장성 유리', tie: '동률' };
+    const parts = trainingAdvice().map((r) => {
+      const range = r.from === r.to ? `${r.from}` : `${r.from}~${r.to}`;
+      const cls = r.best === 'chance' ? '' : ' style="color:var(--gold)"';
+      return `${range}: <b${cls}>${LABEL[r.best]}</b>`;
+    });
+    $('#training-advice').innerHTML =
+      `<b>훈련 방식 가이드</b> (목표 기능 레벨 기준) — ${parts.join(' · ')}` +
+      `<br><span class="hint">동률 구간은 실패 위험이 없는 보장성을 추천합니다. 기대 비용 계산도 이 기준(유리한 쪽 선택)을 사용합니다.</span>`;
   }
 
   function updateGrowthInfo() {
@@ -948,6 +977,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
   renderSkills();
   renderSpells();
   updateGrowthInfo();
+  renderTrainingAdvice();
   updateLevelHint();
   $('#inp-level').addEventListener('input', updateLevelHint);
   $('#btn-eval').addEventListener('click', run);

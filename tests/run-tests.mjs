@@ -68,6 +68,16 @@ test('skillExpectedCost: 1→30 합리적 기대 비용 ≈ 171.35', () => {
   const v = C.skillExpectedCost({ 검술: 30 });
   assert.ok(Math.abs(v - 171.3466) < 0.001, `got ${v}`);
 });
+test('trainingAdvice: 구간별 유불리 자동 산출', () => {
+  const a = C.trainingAdvice();
+  assert.deepEqual(a, [
+    { from: 2, to: 17, best: 'chance' },
+    { from: 18, to: 18, best: 'tie' },
+    { from: 19, to: 20, best: 'guaranteed' },
+    { from: 21, to: 25, best: 'tie' },
+    { from: 26, to: 30, best: 'guaranteed' },
+  ]);
+});
 
 // --- 마법 습득 비용 ---
 test('spellCost: 마법사 파이어스톰5 + 홀드3 = 8', () =>
