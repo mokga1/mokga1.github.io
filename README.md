@@ -24,3 +24,5 @@
 
 - 의존성 없는 단일 `index.html`. 게임 수치는 파일 상단 `GAME` 상수에 모여 있습니다.
 - 테스트: `node tests/run-tests.mjs`
+- **영어판**(`en/index.html`)은 직접 수정하지 말 것 — `index.html` 수정 후 `node tools/build-en.mjs`로 재생성합니다 (번역 사전 기반, 미번역 잔여 한글을 보고해줌).
+- 새 페이지 추가 시 `node tools/add-og.mjs`의 페이지 목록에 넣고 실행하면 OG/canonical 태그가 삽입됩니다. `sitemap.xml`에도 추가하세요.

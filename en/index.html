@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>가디우스 캐릭터 육성 평가기</title>
-<meta name="description" content="가디우스(Godius Eternal War) 캐릭터가 잘 컸는지 힘의 구슬 수지로 진단합니다. 직업·레벨·파라메터·기능을 입력하면 S~F 등급과 리세마라 판정, HP/MP/SP 성장운까지 분석.">
-<link rel="canonical" href="https://mokga1.github.io/">
+<title>Godius Character Evaluator</title>
+<meta name="description" content="Check whether your Godius Eternal War character was raised well. Enter job, level, parameters and skills to get an S-F grade, a reroll verdict, and HP/MP/SP growth-luck analysis.">
+<link rel="canonical" href="https://mokga1.github.io/en/">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="가디우스 캐릭터 평가기">
-<meta property="og:title" content="가디우스 캐릭터 육성 평가기">
-<meta property="og:description" content="가디우스(Godius Eternal War) 캐릭터가 잘 컸는지 힘의 구슬 수지로 진단합니다. 직업·레벨·파라메터·기능을 입력하면 S~F 등급과 리세마라 판정, HP/MP/SP 성장운까지 분석.">
-<meta property="og:url" content="https://mokga1.github.io/">
-<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="Godius Character Evaluator">
+<meta property="og:title" content="Godius Character Evaluator">
+<meta property="og:description" content="Check whether your Godius Eternal War character was raised well. Enter job, level, parameters and skills to get an S-F grade, a reroll verdict, and HP/MP/SP growth-luck analysis.">
+<meta property="og:url" content="https://mokga1.github.io/en/">
+<meta property="og:locale" content="en_US">
 <link rel="alternate" hreflang="ko" href="https://mokga1.github.io/">
 <link rel="alternate" hreflang="en" href="https://mokga1.github.io/en/">
 <link rel="alternate" hreflang="x-default" href="https://mokga1.github.io/">
@@ -224,88 +224,88 @@
 </head>
 <body>
 <header class="site-header">
-  <h1>가디우스 캐릭터 육성 평가기</h1>
-  <p class="subtitle">GODIUS Eternal War — 힘의 구슬 수지로 내 캐릭터가 잘 컸는지 진단합니다</p>
+  <h1>Godius Character Evaluator</h1>
+  <p class="subtitle">GODIUS Eternal War — diagnose your character growth through the Orbs of Power ledger</p>
   <nav class="guide-nav">
-    <a href="guide/orbs.html">📖 구슬 시스템</a>
-    <a href="guide/beginner.html">초보 가이드</a>
-    <a href="guide/reroll.html">리세마라</a>
-    <a href="guide/warrior.html">전사 공략</a>
-    <a href="guide/fighter.html">검투사 공략</a>
-    <a href="guide/thief.html">도둑 공략</a>
-    <a href="guide/wizard.html">마법사 공략</a>
-    <a href="guide/cleric.html">성직자 공략</a>
-    <a href="feedback.html">💬 피드백</a>
-    <a href="en/">🇺🇸 English</a>
+    <a href="../">🇰🇷 한국어 (Korean version)</a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="../feedback.html">💬 Feedback</a>
+    
   </nav>
 </header>
 
 <main>
   <section class="step" id="step-job">
-    <h2><span class="step-no">1</span> 직업 선택</h2>
-    <div class="field-label">주직업</div>
+    <h2><span class="step-no">1</span> Job Selection</h2>
+    <div class="field-label">Main Job</div>
     <div class="job-grid" id="main-job-grid"></div>
-    <div class="field-label">보조직업</div>
+    <div class="field-label">Sub Job</div>
     <div class="job-grid" id="sub-job-grid"></div>
   </section>
 
   <section class="step" id="step-level">
-    <h2><span class="step-no">2</span> 레벨 · HP / MP / SP</h2>
+    <h2><span class="step-no">2</span> Level · HP / MP / SP</h2>
     <div class="level-row">
       <input type="number" id="inp-level" min="2" max="99" value="30">
       <span class="hint" id="level-hint"></span>
     </div>
-    <p class="hint" style="margin-top:12px">현재 HP/MP/SP를 입력하면 레벨업 성장운이 평균 이상인지 진단합니다 (선택 입력, 장비·버프 보정 없는 순수 최대치 기준).</p>
+    <p class="hint" style="margin-top:12px">Enter current HP/MP/SP to check whether your level-up growth luck is above average (optional; use raw max values without equipment or buffs).</p>
     <p class="growth-info" id="growth-info"></p>
     <div class="vital-grid">
-      <label class="stat-item"><span class="stat-name">HP</span><input type="number" id="inp-hp" min="0" placeholder="미입력"><span class="stat-base" id="range-HP"></span></label>
-      <label class="stat-item"><span class="stat-name">MP</span><input type="number" id="inp-mp" min="0" placeholder="미입력"><span class="stat-base" id="range-MP"></span></label>
-      <label class="stat-item"><span class="stat-name">SP</span><input type="number" id="inp-sp" min="0" placeholder="미입력"><span class="stat-base" id="range-SP"></span></label>
+      <label class="stat-item"><span class="stat-name">HP</span><input type="number" id="inp-hp" min="0" placeholder="optional"><span class="stat-base" id="range-HP"></span></label>
+      <label class="stat-item"><span class="stat-name">MP</span><input type="number" id="inp-mp" min="0" placeholder="optional"><span class="stat-base" id="range-MP"></span></label>
+      <label class="stat-item"><span class="stat-name">SP</span><input type="number" id="inp-sp" min="0" placeholder="optional"><span class="stat-base" id="range-SP"></span></label>
     </div>
   </section>
 
   <section class="step" id="step-stats">
-    <h2><span class="step-no">3</span> 현재 파라메터</h2>
-    <p class="hint">주직업을 선택하면 생성 시 기본값으로 채워집니다. 스탯창의 현재 수치를 입력하세요.</p>
+    <h2><span class="step-no">3</span> Current Parameters</h2>
+    <p class="hint">Selecting a main job pre-fills creation defaults. Enter the current values from your status window.</p>
     <div class="stat-grid" id="stat-grid"></div>
   </section>
 
   <section class="step" id="step-skills">
-    <h2><span class="step-no">4</span> 보유 기능 레벨</h2>
-    <p class="hint">주직업·보조직업 조합에 따라 기능 목록이 표시됩니다. (생성 시 레벨 1부터 시작)</p>
+    <h2><span class="step-no">4</span> Skill Levels</h2>
+    <p class="hint">The skill list follows your job combination. (All skills start at level 1 on creation)</p>
     <p class="growth-info" id="training-advice"></p>
     <div class="skill-grid" id="skill-grid"></div>
   </section>
 
   <section class="step" id="step-spells" hidden>
-    <h2><span class="step-no">5</span> 습득한 마법 · 특수기술</h2>
-    <p class="hint">배울 때 힘의구슬이 들어가는 것만 표시됩니다 (괄호 안이 소모 구슬). 란스만 드는 마법은 평가와 무관하여 제외.</p>
+    <h2><span class="step-no">5</span> Learned Spells · Special Skills</h2>
+    <p class="hint">Only spells that cost Orbs of Power to learn are listed (cost in parentheses). Lance-only spells are omitted.</p>
     <div id="spell-groups"></div>
   </section>
 
   <section class="step" id="step-unspent">
     <div class="unspent-row">
-      <label for="inp-unspent">미사용 힘의구슬 (캐릭터 선택 화면에서 확인)</label>
+      <label for="inp-unspent">Unspent Orbs of Power (shown on the character select screen)</label>
       <input type="number" id="inp-unspent" min="0" value="0">
     </div>
     <label class="reroll-toggle">
       <input type="checkbox" id="chk-reroll">
-      <span><b>리세마라 진단</b> — 지금 리세를 계속 진행할지, 삭제하고 다시 만들지 제안해줍니다 (목표: Lv50까지 기능 2개 25/25)</span>
+      <span><b>Reroll Check</b> — advises whether to keep going or delete and reroll (goal: two skills at 25/25 by Lv50)</span>
     </label>
   </section>
 
   <div class="action-row">
-    <button id="btn-eval" type="button">캐릭터 평가하기</button>
+    <button id="btn-eval" type="button">Evaluate Character</button>
   </div>
   <div id="validation" class="validation" hidden></div>
 
   <section id="result" class="result" hidden></section>
 
   <footer class="site-footer">
-    <p>데이터 출처: <a href="https://www.godius.co.kr/" target="_blank" rel="noopener">가디우스 공식 홈페이지</a> ·
-    <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3750780737" target="_blank" rel="noopener">스팀 공식 가이드</a>
-    (기능 성공률표 · 마법 습득 비용 · 직업별 스킬)</p>
-    <p><a href="about.html">소개</a> · <a href="privacy.html">개인정보처리방침</a> · <a href="feedback.html">피드백</a></p>
+    <p>Data: <a href="https://www.godius.co.kr/" target="_blank" rel="noopener">Godius Official Website</a> ·
+    <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3750780737" target="_blank" rel="noopener">Official Steam Guides</a>
+    (success rates · spell costs · job skills)</p>
+    <p><a href="../about.html">About</a> · <a href="../privacy.html">Privacy Policy</a> · <a href="../feedback.html">Feedback</a></p>
   </footer>
 </main>
 
@@ -316,35 +316,35 @@
 // ============================================================
 const STAT_KEYS = ['STR', 'AGR', 'DEX', 'INT', 'VIT', 'MEN'];
 const STAT_LABELS = {
-  STR: 'STR (힘)', AGR: 'AGR (민첩)', DEX: 'DEX (손재주)',
-  INT: 'INT (지혜)', VIT: 'VIT (활력)', MEN: 'MEN (정신력)',
+  STR: 'STR (Strength)', AGR: 'AGR (Agility)', DEX: 'DEX (Dexterity)',
+  INT: 'INT (Wisdom)', VIT: 'VIT (Vitality)', MEN: 'MEN (Mentality)',
 };
 
 const GAME = {
   jobs: {
     // growth: 레벨업 1회당 HP/MP/SP 상승 범위 [최소, 최대] (커뮤니티 공략 수치, 주직업 기준)
-    warrior: { name: '전사',   base: { STR: 12, AGR: 6, DEX: 10, INT: 6,  VIT: 6,  MEN: 6  },
-      skills: ['검술', '부술', '둔기술', '격술', '회피술'], keyStats: ['STR', 'VIT'],
+    warrior: { name: 'Warrior',   base: { STR: 12, AGR: 6, DEX: 10, INT: 6,  VIT: 6,  MEN: 6  },
+      skills: ['Sword Mastery', 'Axe Mastery', 'Blunt Mastery', 'Brawling', 'Evasion'], keyStats: ['STR', 'VIT'],
       growth: { HP: [2, 3], MP: [1, 2], SP: [1, 3] } },
-    fighter: { name: '검투사', base: { STR: 12, AGR: 6, DEX: 6,  INT: 6,  VIT: 12, MEN: 6  },
-      skills: ['부술', '둔기술', '회피술', '창술', '암살검술', '격술'], keyStats: ['STR', 'VIT'],
+    fighter: { name: 'Gladiator', base: { STR: 12, AGR: 6, DEX: 6,  INT: 6,  VIT: 12, MEN: 6  },
+      skills: ['Axe Mastery', 'Blunt Mastery', 'Evasion', 'Spear Mastery', 'Assassin Sword', 'Brawling'], keyStats: ['STR', 'VIT'],
       growth: { HP: [2, 3], MP: [1, 2], SP: [1, 3] } },
-    thief:   { name: '도둑',   base: { STR: 6,  AGR: 6, DEX: 6,  INT: 6,  VIT: 6,  MEN: 6  },
-      skills: ['부술', '암살검술', '회피술', '함정발견', '해체술', '연막치기', '떨어뜨리기'], keyStats: ['DEX', 'AGR'],
+    thief:   { name: 'Thief',   base: { STR: 6,  AGR: 6, DEX: 6,  INT: 6,  VIT: 6,  MEN: 6  },
+      skills: ['Axe Mastery', 'Assassin Sword', 'Evasion', 'Detect Trap', 'Disarm Trap', 'Smoke Screen', 'Stealing'], keyStats: ['DEX', 'AGR'],
       growth: { HP: [1, 3], MP: [1, 3], SP: [1, 3] } },
-    wizard:  { name: '마법사', base: { STR: 6,  AGR: 6, DEX: 6,  INT: 12, VIT: 6,  MEN: 10 },
-      skills: ['격술', '화염마법', '냉동마법', '중성마법'], keyStats: ['VIT', 'MEN', 'INT'],
+    wizard:  { name: 'Wizard', base: { STR: 6,  AGR: 6, DEX: 6,  INT: 12, VIT: 6,  MEN: 10 },
+      skills: ['Brawling', 'Fire Magic', 'Ice Magic', 'Neutral Magic'], keyStats: ['VIT', 'MEN', 'INT'],
       growth: { HP: [1, 2], MP: [2, 3], SP: [1, 2] } },
-    cleric:  { name: '성직자', base: { STR: 6,  AGR: 6, DEX: 6,  INT: 10, VIT: 6,  MEN: 12 },
-      skills: ['둔기술', '신성마법', '중성마법'], keyStats: ['VIT', 'MEN', 'INT'],
+    cleric:  { name: 'Priest', base: { STR: 6,  AGR: 6, DEX: 6,  INT: 10, VIT: 6,  MEN: 12 },
+      skills: ['Blunt Mastery', 'Holy Magic', 'Neutral Magic'], keyStats: ['VIT', 'MEN', 'INT'],
       growth: { HP: [1, 3], MP: [1, 3], SP: [1, 3] } },
   },
   // 스팀판(Eternal War)은 보조직업이 4종만 선택 가능
   subJobs: {
-    alchemist:  { name: '연금술사', skills: ['부술', '화학', '응급처치'] },
-    tailor:     { name: '재봉사',   skills: ['검술', '옷제작', '옷수선'] },
-    blacksmith: { name: '대장장이', skills: ['둔기술', '무기제작', '무기수선'] },
-    bard:       { name: '바드',     skills: ['창술', '주가'] },
+    alchemist:  { name: 'Alchemist', skills: ['Axe Mastery', 'Chemistry', 'First Aid'] },
+    tailor:     { name: 'Tailor',   skills: ['Sword Mastery', 'Tailoring', 'Clothing Repair'] },
+    blacksmith: { name: 'Blacksmith', skills: ['Blunt Mastery', 'Weapon Crafting', 'Weapon Repair'] },
+    bard:       { name: 'Bard',     skills: ['Spear Mastery', 'Singing'] },
   },
   // 주직업별 선택 불가 보조직업 (검투사는 연금술사 불가)
   subJobBlock: { fighter: ['alchemist'] },
@@ -368,34 +368,34 @@ const GAME = {
   // 직업별 육성 팁 (공식 가이드 권장 + 스팀 가이드 기술 해금 조건 + 커뮤니티 공략 참고)
   jobTips: {
     warrior: [
-      '생성 시 STR·VIT를 15에 맞추는 것이 공식 가이드 권장입니다.',
-      '구슬은 주무기 기능(검술/부술/둔기술 중 하나)에 집중하세요. 무기술 25부터 상위 기술이 열립니다.',
-      '리뉴얼(자가 회복)은 무기술 25 + INT 15, 실드블럭은 무기술 25 + INT 25 + 구슬 5개가 필요하니 INT도 어느 정도 챙기면 좋습니다.',
-      '리세마라 정석: 주무기 기능 + 회피술 25/25.',
+      'The official guide recommends setting STR and VIT to 15 at creation.',
+      'Focus your orbs on one weapon skill (sword, axe or blunt). Advanced techniques unlock from weapon skill 25.',
+      'Renewal (self-heal) needs weapon skill 25 + INT 15, and Shield Block needs weapon skill 25 + INT 25 + 5 orbs, so keep some INT.',
+      'Reroll standard: main weapon skill + Evasion at 25/25.',
     ],
     fighter: [
-      '기본 STR12/VIT12라 6포인트만 쓰면 STR·VIT 15가 됩니다. 남는 보너스는 AGR·DEX에.',
-      '다룰 수 있는 무기가 많지만 부술·둔기술·창술 중 하나만 집중하는 게 구슬 효율이 좋습니다.',
-      '창술 10 이상이면 스위핑블로우 2단 찌르기가 강화되고, 버서크는 무기술 25 + 구슬 5개가 필요합니다.',
-      '리세마라 정석: 주무기 기능 + 회피술 25/25.',
+      'With base STR 12 / VIT 12, only 6 points reach STR-VIT 15. Put the remaining bonus into AGR and DEX.',
+      'Many weapons are usable, but committing to just one of axe, blunt or spear is the orb-efficient path.',
+      'Spear 10+ upgrades Sweeping Blow with a double thrust; Berserk needs weapon skill 25 + 5 orbs.',
+      'Reroll standard: main weapon skill + Evasion at 25/25.',
     ],
     thief: [
-      '명중(HC)은 DEX, 회피(DC)는 AGR — 생성 시 DEX·AGR 15 우선.',
-      '주력 딜은 암살검술입니다 (양손검 + 보강갑옷 이하 착용 조건, 검술보다 강력).',
-      '트랩설치는 해체술 15 + 함정발견 10, 플래시뱅은 연막치기 25가 필요합니다.',
-      '리세마라 정석: 암살검술 + 회피술 25/25.',
+      'DEX drives hit (HC) and AGR drives evasion (DC) — set both to 15 at creation.',
+      'Assassin Sword is your main damage (two-handed sword + reinforced armor or lighter; stronger than Sword Mastery).',
+      'Trap Setting needs Disarm Trap 15 + Detect Trap 10; Flashbang needs Smoke Screen 25.',
+      'Reroll standard: Assassin Sword + Evasion at 25/25.',
     ],
     wizard: [
-      '생성 시 VIT·MEN·INT를 가급적 15에 맞추는 것이 공식 가이드 권장입니다.',
-      '화염·냉동 중 주력 원소 하나 + 중성마법 조합이 정석입니다. 판금 이상 갑옷을 입으면 마법을 못 쓰니 스태프류를 유지하세요.',
-      '고급 마법은 습득에도 구슬이 듭니다 (파이어스톰 5개, 피라쇼크 3개 등) — 리세 구간에는 아껴두세요.',
-      '리세마라 정석: 주력 마법 2계열 25/25.',
+      'The official guide recommends VIT, MEN and INT at 15 on creation.',
+      'Standard build: one main element (fire or ice) plus neutral magic. Plate armor or heavier blocks casting, so stay on staves.',
+      'High-end spells cost orbs to learn (Firestorm 5, Pyra Shock 3, etc.) — hold off during the reroll phase.',
+      'Reroll standard: two main magic schools at 25/25.',
     ],
     cleric: [
-      '생성 시 VIT·MEN·INT를 가급적 15에 맞추는 것이 공식 가이드 권장입니다.',
-      '무기는 종교적 이유로 둔기류만 사용 가능 — 둔기술 + 신성마법이 주력입니다.',
-      '파워실드(구슬 5개)는 파티 필수기라 습득 비용을 미리 계산에 넣어두세요.',
-      '리세마라 정석: 둔기술 + 신성마법 25/25.',
+      'The official guide recommends VIT, MEN and INT at 15 on creation.',
+      'Religious rules allow blunt weapons only — Blunt Mastery + Holy Magic is your core.',
+      'Power Shield (5 orbs) is a must-have party skill — budget for it in advance.',
+      'Reroll standard: Blunt Mastery + Holy Magic at 25/25.',
     ],
   },
   // 리세마라 기준: 레벨 50까지 기능 2개를 25/25로 만들면 성공 (구슬 잔량 무관)
@@ -403,22 +403,22 @@ const GAME = {
   // 습득 시 힘의구슬이 소모되는 마법·특수기술 (구슬 0개짜리는 평가와 무관하여 제외)
   // 출처: 스팀 가이드 직업별 스킬표 (jobs: 주직업 또는 보조직업이 일치하면 습득 가능)
   spellGroups: [
-    { name: '화염마법',            jobs: ['wizard'],
-      items: { '피라볼': 2, '피라실드': 1, '피라쇼크': 3, '피라스트라이크': 2, '파이어스톰': 5 } },
-    { name: '냉동마법',            jobs: ['wizard'],
-      items: { '아이겐볼': 2, '아이겐실드': 1, '아이겐웨이브': 3, '아이겐스트라이크': 2 } },
-    { name: '중성마법',            jobs: ['wizard', 'cleric'],
-      items: { '홀드': 3, '자이언트그로스': 1, '매지컬실드': 1, '위크니스': 1, '애시드클라우드': 2, '바인드': 4 } },
-    { name: '중성마법 (마법사)',   jobs: ['wizard'],
-      items: { '메이지아머': 3 } },
-    { name: '신성마법',            jobs: ['cleric'],
-      items: { '큐어': 1, '큐어패럴라이즈': 1, '블레스': 1, '커스': 1, '큐어디지즈': 1, '홀리볼': 2, '리저렉트': 4 } },
-    { name: '중성마법 (성직자)',   jobs: ['cleric'],
-      items: { '큐어펄스': 3, '파워실드': 5 } },
-    { name: '특수기술 (전사)',     jobs: ['warrior'],
-      items: { '실드블럭': 5 } },
-    { name: '특수기술 (검투사)',   jobs: ['fighter'],
-      items: { '버서크': 5 } },
+    { name: 'Fire Magic',            jobs: ['wizard'],
+      items: { 'Firaball': 2, 'Pyra Shield': 1, 'Pyra Shock': 3, 'Pyra Strike': 2, 'Firestorm': 5 } },
+    { name: 'Ice Magic',            jobs: ['wizard'],
+      items: { 'Eigen Ball': 2, 'Eigen Shield': 1, 'Eigen Wave': 3, 'Eigen Strike': 2 } },
+    { name: 'Neutral Magic',            jobs: ['wizard', 'cleric'],
+      items: { 'Hold': 3, 'Giant Growth': 1, 'Magical Shield': 1, 'Weakness': 1, 'Acid Cloud': 2, 'Bind': 4 } },
+    { name: 'Neutral Magic (Wizard)',   jobs: ['wizard'],
+      items: { 'Mage Armor': 3 } },
+    { name: 'Holy Magic',            jobs: ['cleric'],
+      items: { 'Cure': 1, 'Cure Paralyze': 1, 'Bless': 1, 'Curse': 1, 'Cure Disease': 1, 'Holy Ball': 2, 'Resurrect': 4 } },
+    { name: 'Neutral Magic (Priest)',   jobs: ['cleric'],
+      items: { 'Cure Pulse': 3, 'Power Shield': 5 } },
+    { name: 'Special (Warrior)',     jobs: ['warrior'],
+      items: { 'Shield Block': 5 } },
+    { name: 'Special (Gladiator)',   jobs: ['fighter'],
+      items: { 'Berserk': 5 } },
   ],
 };
 
@@ -607,38 +607,38 @@ function evaluate(input) {
   const job = GAME.jobs[input.mainJob];
   const sub = GAME.subJobs[input.subJob];
 
-  if (!job) errors.push('주직업을 선택하세요.');
-  if (!sub) errors.push('보조직업을 선택하세요.');
+  if (!job) errors.push('Select a main job.');
+  if (!sub) errors.push('Select a sub job.');
   if (job && sub) {
-    if (input.mainJob === input.subJob) errors.push('주직업과 보조직업은 같을 수 없습니다.');
+    if (input.mainJob === input.subJob) errors.push('Main job and sub job cannot be the same.');
     if ((GAME.subJobBlock[input.mainJob] || []).includes(input.subJob)) {
-      errors.push(`${job.name}은(는) 보조직업으로 ${sub.name}를 선택할 수 없습니다.`);
+      errors.push(`${job.name} cannot take ${sub.name} as a sub job.`);
     }
   }
   if (!Number.isInteger(input.level) || input.level < 2 || input.level > 99) {
-    errors.push('레벨은 2~99 사이의 정수여야 합니다.');
+    errors.push('Level must be an integer between 2 and 99.');
   }
   if (job) {
     for (const k of STAT_KEYS) {
       const v = input.stats[k];
       if (!Number.isInteger(v) || v < job.base[k] || v > GAME.statMax) {
-        errors.push(`${STAT_LABELS[k]}은(는) ${job.base[k]}~${GAME.statMax} 사이여야 합니다.`);
+        errors.push(`${STAT_LABELS[k]} must be between ${job.base[k]} and ${GAME.statMax}.`);
       }
     }
     if (errors.length === 0) {
       const capSum = STAT_KEYS.reduce((s, k) => s + Math.min(GAME.creationMaxPerStat, input.stats[k]), 0);
       if (capSum < GAME.totalInitial) {
-        errors.push(`파라메터 입력이 생성 시 배분(합 ${GAME.totalInitial})과 모순됩니다. 현재 파라메터를 다시 확인하세요.`);
+        errors.push(`Parameters contradict the creation allocation (total ${GAME.totalInitial}). Please re-check them.`);
       }
     }
   }
   for (const [name, lv] of Object.entries(input.skills || {})) {
     if (!Number.isInteger(lv) || lv < 1 || lv > GAME.skillMax) {
-      errors.push(`기능 [${name}] 레벨은 1~${GAME.skillMax} 사이여야 합니다.`);
+      errors.push(`Skill [${name}] must be between 1 and ${GAME.skillMax}.`);
     }
   }
   const unspent = input.unspent || 0;
-  if (!Number.isInteger(unspent) || unspent < 0) errors.push('미사용 힘의구슬은 0 이상의 정수여야 합니다.');
+  if (!Number.isInteger(unspent) || unspent < 0) errors.push('Unspent orbs must be an integer of 0 or more.');
   if (errors.length) return { ok: false, errors, warnings };
 
   const earned = earnedOrbs(input.level);
@@ -651,20 +651,20 @@ function evaluate(input) {
   if (skillActual < 0) {
     return {
       ok: false, warnings,
-      errors: [`획득 가능한 구슬(${earned}개)보다 많이 소비된 캐릭터입니다. 레벨·파라메터·습득 마법·미사용 구슬 입력을 확인하세요.`],
+      errors: [`This character spent more than the ${earned} orbs obtainable. Check level, parameters, learned spells and unspent orbs.`],
     };
   }
 
   let adjusted = skillActual;
   if (skillActual < skillMin) {
-    warnings.push('기능 레벨 대비 소비한 구슬이 이론 최소보다 적습니다. 퀘스트·이벤트 등으로 구슬을 추가 획득한 것으로 보고 최상 효율로 평가합니다.');
+    warnings.push('Orbs spent are below the theoretical minimum for these skill levels. Assuming extra orbs from quests or events and rating at best efficiency.');
     adjusted = skillMin;
   }
 
   const vitals = evaluateVitals(input.mainJob, input.level, input.vitals);
   for (const v of vitals) {
-    if (v.verdict === 'over') warnings.push(`${v.key}가 기대 최대치(${v.max})보다 높습니다. 장비·버프 보정이 빠진 순수 수치인지 확인하세요.`);
-    if (v.verdict === 'under') warnings.push(`${v.key}가 기대 최소치(${v.min})보다 낮습니다. 레벨·직업 입력을 확인하세요.`);
+    if (v.verdict === 'over') warnings.push(`${v.key} is above the expected max (${v.max}). Make sure the value excludes equipment and buffs.`);
+    if (v.verdict === 'under') warnings.push(`${v.key} is below the expected min (${v.min}). Check the level and job inputs.`);
   }
 
   let grade;
@@ -681,7 +681,7 @@ function evaluate(input) {
     ok: true, errors, warnings,
     earned, paramCost: pc.cost, bonus: pc.bonus, spellOrbs, unspent,
     skillMin, skillExpected, skillActual, adjustedSkillSpend: adjusted,
-    wasted: Math.max(0, adjusted - skillMin),   // 실패로 소실된 것으로 추정되는 구슬
+    wasted: Math.max(0, adjusted - skillMin),   // Orbs likely lost to failures
     savedOrbs: skillExpected - adjusted,        // 평균 유저 대비 절약분 (음수 = 초과 소모)
     ratio, grade, vitals,
     reroll: input.rerollMode ? rerollCheck(input.level, input.skills, unspent) : null,
@@ -704,13 +704,13 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
   const state = { mainJob: null, subJob: null };
 
   const GRADE_INFO = {
-    S:    { label: 'S', comment: '구슬의 신이 함께합니다. 완벽에 가까운 육성!' },
-    A:    { label: 'A', comment: '평균 이상의 운과 계획성. 아주 잘 컸습니다.' },
-    B:    { label: 'B', comment: '평균적인 유저 수준. 무난하게 잘 크고 있습니다.' },
-    C:    { label: 'C', comment: '기능 실패가 좀 있었네요. 평균에 약간 못 미칩니다.' },
-    D:    { label: 'D', comment: '구슬을 꽤 날렸습니다. 고레벨 기능은 보장성 훈련을 애용하세요.' },
-    F:    { label: 'F', comment: '기능 실패로 구슬을 갈아넣었습니다… 지금부터라도 보장성 위주로!' },
-    HOLD: { label: '보류', comment: '구슬 비축형 캐릭터. 아직 기능 투자가 없어 평가하기 이릅니다.' },
+    S:    { label: 'S', comment: 'The orb gods are with you. Near-perfect growth!' },
+    A:    { label: 'A', comment: 'Above-average luck and planning. Very well raised.' },
+    B:    { label: 'B', comment: 'Right around the average player. Growing steadily.' },
+    C:    { label: 'C', comment: 'Some failed training attempts. Slightly below average.' },
+    D:    { label: 'D', comment: 'Quite a few orbs burned. Use guaranteed training at high levels.' },
+    F:    { label: 'F', comment: 'Orbs devoured by failed training… switch to guaranteed from now on!' },
+    HOLD: { label: 'N/A', comment: 'Orb stockpiler. No skill investment yet — too early to grade.' },
   };
 
   function allowedSubJobs(mainKey) {
@@ -750,7 +750,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       btn.className = 'job-btn' + (state.subJob === key ? ' selected' : '');
       btn.textContent = job.name;
       btn.disabled = !allowed.includes(key);
-      btn.title = btn.disabled ? '이 주직업으로는 선택할 수 없는 보조직업입니다' : '';
+      btn.title = btn.disabled ? 'Not selectable with this main job' : '';
       btn.addEventListener('click', () => {
         state.subJob = key;
         renderSubJobs();
@@ -774,7 +774,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       wrap.innerHTML =
         `<span class="stat-name${isKey ? ' key-stat' : ''}">${STAT_LABELS[k]}</span>` +
         `<input type="number" data-stat="${k}" min="${base[k]}" max="${GAME.statMax}" value="${preset[k]}">` +
-        `<span class="stat-base">기본 ${base[k]}</span>`;
+        `<span class="stat-base">base ${base[k]}</span>`;
       grid.appendChild(wrap);
     }
   }
@@ -826,22 +826,22 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
   }
 
   function renderTrainingAdvice() {
-    const LABEL = { chance: '확률성 유리', guaranteed: '보장성 유리', tie: '동률' };
+    const LABEL = { chance: 'Chance better', guaranteed: 'Guaranteed better', tie: 'Tie' };
     const parts = trainingAdvice().map((r) => {
       const range = r.from === r.to ? `${r.from}` : `${r.from}~${r.to}`;
       const cls = r.best === 'chance' ? '' : ' style="color:var(--gold)"';
       return `${range}: <b${cls}>${LABEL[r.best]}</b>`;
     });
     $('#training-advice').innerHTML =
-      `<b>훈련 방식 가이드</b> (목표 기능 레벨 기준) — ${parts.join(' · ')}` +
-      `<br><span class="hint">동률 구간은 실패 위험이 없는 보장성을 추천합니다. 기대 비용 계산도 이 기준(유리한 쪽 선택)을 사용합니다.</span>`;
+      `<b>Training Method Guide</b> (by target skill level) — ${parts.join(' · ')}` +
+      `<br><span class="hint">In tie ranges, guaranteed training is recommended (no failure risk). Expected costs use this optimal-choice baseline.</span>`;
   }
 
   function updateGrowthInfo() {
     if (!state.mainJob) return;
     const job = GAME.jobs[state.mainJob];
     $('#growth-info').innerHTML =
-      `<b>${job.name}</b> 레벨업 1회당 상승 범위 — ` +
+      `<b>${job.name}</b> gains per level-up — ` +
       ['HP', 'MP', 'SP'].map((k) => `${k} <b>+${job.growth[k][0]}~${job.growth[k][1]}</b>`).join(' · ');
     for (const k of ['HP', 'MP', 'SP']) {
       $(`#range-${k}`).textContent = `+${job.growth[k][0]}~${job.growth[k][1]}/Lv`;
@@ -852,7 +852,7 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
     const lv = parseInt($('#inp-level').value, 10);
     $('#level-hint').textContent =
       Number.isInteger(lv) && lv >= 2 && lv <= 99
-        ? `이 레벨까지 레벨업으로 획득한 힘의구슬: ${earnedOrbs(lv)}개`
+        ? `Orbs of Power earned by this level: ${earnedOrbs(lv)}`
         : '';
   }
 
@@ -943,23 +943,23 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
     if (r.reroll) {
       const rr = r.reroll;
       const RR_INFO = {
-        success:    ['리세 성공', '기능 2개 25/25 달성! 이 캐릭터로 본육성을 진행하세요.'],
-        green:      ['계속 진행 추천', '남은 구슬이 평균 기대치보다 많습니다. 삭제하지 말고 계속 키우세요.'],
-        yellow:     ['판단 필요', `평균 기대치보다 약 <b>${fmt(rr.expected - rr.available)}개</b> 부족합니다. 부족량이 적으면 도전해볼 만하지만, 크다면 지금 삭제하고 다시 만드는 게 시간 절약입니다.`],
-        impossible: ['삭제 후 재생성 추천', '레벨 50까지 남은 구슬을 전부 부어도 최소 필요량에 못 미칩니다. 이 캐릭터로는 25/25가 불가능해요.'],
+        success:    ['Reroll Success', 'Two skills at 25/25! Keep this character and start the real grind.'],
+        green:      ['Keep Going', 'Remaining orbs exceed the expected cost. Do not delete — keep leveling.'],
+        yellow:     ['Decision Point', `About <b>${fmt(rr.expected - rr.available)}</b> orbs short of the expected cost. A small gap is worth pushing through; a large one means rerolling now saves time.`],
+        impossible: ['Delete and Reroll', 'Even spending every orb up to level 50 cannot reach the minimum needed. 25/25 is impossible on this character.'],
       };
       const [label, desc] = RR_INFO[rr.status];
       const topText = rr.top.map((t) => `${t.name} Lv${t.lv}`).join(' · ');
       rerollHtml = `
         <div class="reroll-card reroll-${rr.status}">
-          <div class="reroll-head">리세마라 진단 <span class="reroll-badge">${label}</span></div>
+          <div class="reroll-head">Reroll Check <span class="reroll-badge">${label}</span></div>
           <p class="reroll-desc">${desc}</p>
-          <p class="reroll-detail">기준: Lv${rr.targetLevel}까지 기능 2개 ${rr.goal}/${rr.goal} · 현재 상위 기능: ${topText}</p>
-          <p class="reroll-detail">남은 자원 <b>${rr.available}개</b> (레벨업 ${rr.future} + 보유 ${r.unspent})
-            / 최소 필요 <b>${rr.needMin}개</b> / 평균 기대 <b>${fmt(rr.expected)}개</b></p>
+          <p class="reroll-detail">Goal: two skills at ${rr.goal}/${rr.goal} by Lv${rr.targetLevel} · current top skills: ${topText}</p>
+          <p class="reroll-detail">Remaining <b>${rr.available}</b> orbs (from level-ups ${rr.future} + held ${r.unspent})
+            / minimum needed <b>${rr.needMin}</b> / expected <b>${fmt(rr.expected)}</b></p>
         </div>`;
     } else if (input.rerollMode) {
-      rerollHtml = `<p class="warning">리세마라 진단은 레벨 50 이하에서만 제공됩니다.</p>`;
+      rerollHtml = `<p class="warning">The reroll check is only available at level 50 or below.</p>`;
     }
 
     // 운 게이지: 효율 지수 0~2를 0~100%로 (1.0 = 평균 = 중앙)
@@ -968,13 +968,13 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       const pct = Math.max(0, Math.min(2, r.ratio)) / 2 * 100;
       const diff = r.savedOrbs;
       const diffText = diff >= 0
-        ? `보장성을 잘 활용하는 합리적인 유저 대비 힘의구슬 약 <b>${fmt(diff)}개</b>를 절약했습니다.`
-        : `보장성을 잘 활용하는 합리적인 유저 대비 힘의구슬 약 <b>${fmt(-diff)}개</b>를 더 소모했습니다.`;
+        ? `You saved about <b>${fmt(diff)}</b> orbs versus a rational player who uses guaranteed training optimally.`
+        : `You overspent about <b>${fmt(-diff)}</b> orbs versus a rational player who uses guaranteed training optimally.`;
       gaugeHtml = `
         <div class="gauge-wrap">
-          <div class="gauge-title">운 게이지 (효율 지수 ${fmt(r.ratio)} — 1.0이 평균)</div>
+          <div class="gauge-title">Luck Gauge (efficiency ${fmt(r.ratio)} — 1.0 = average)</div>
           <div class="gauge"><div class="gauge-fill" style="width:${(100 - pct).toFixed(1)}%"></div><div class="gauge-center"></div></div>
-          <div class="gauge-labels"><span>허접</span><span>평균</span><span>괴수</span></div>
+          <div class="gauge-labels"><span>Unlucky</span><span>Average</span><span>Blessed</span></div>
           <p class="gauge-diff">${diffText}</p>
         </div>`;
     }
@@ -982,53 +982,53 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
     let vitalHtml = '';
     if (r.vitals && r.vitals.length) {
       const VERDICT = {
-        above:   ['평균 이상', 'good'],
-        average: ['평균 수준', 'avg'],
-        below:   ['평균 이하', 'bad'],
-        over:    ['범위 초과?', 'odd'],
-        under:   ['범위 미달?', 'odd'],
+        above:   ['Above average', 'good'],
+        average: ['Average', 'avg'],
+        below:   ['Below average', 'bad'],
+        over:    ['Above range?', 'odd'],
+        under:   ['Below range?', 'odd'],
       };
       const rows = r.vitals.map((v) => {
         const [label, cls] = VERDICT[v.verdict];
         return `<tr><th>${v.key}</th><td>${v.actual}</td><td>${v.min} ~ ${v.max}</td><td>${fmt(v.avg)}</td>` +
           `<td>${v.diff >= 0 ? '+' : ''}${fmt(v.diff)}</td>` +
-          `<td><span class="verdict verdict-${cls}">${label}</span> <span class="hint">(상위 ${Math.round((1 - v.pct) * 100)}%)</span></td></tr>`;
+          `<td><span class="verdict verdict-${cls}">${label}</span> <span class="hint">(top ${Math.round((1 - v.pct) * 100)}%)</span></td></tr>`;
       }).join('');
       vitalHtml = `
-        <h3>HP · MP · SP 성장 진단</h3>
+        <h3>HP · MP · SP Growth Check</h3>
         <table class="ledger vitals">
-          <tr><th>항목</th><th>현재</th><th>가능 범위 (Lv${input.level})</th><th>평균</th><th>평균 대비</th><th>판정</th></tr>
+          <tr><th>Stat</th><th>Current</th><th>Range (Lv${input.level})</th><th>Average</th><th>vs Avg</th><th>Verdict</th></tr>
           ${rows}
         </table>
-        <p class="fine-print">* 레벨업 상승 범위는 커뮤니티 공략의 주직업 기준 수치이며, 보조직업 영향은 공식 미공개라 반영하지 않았습니다. 초기 스탯은 핵심 스탯 우선 배분으로 추정합니다.</p>`;
+        <p class="fine-print">* Level-up growth ranges are community-sourced values for the main job; sub-job influence is not officially published. Initial stats are estimated with key-stat-first allocation.</p>`;
     }
 
     box.innerHTML = `
       <div class="grade-card grade-${r.grade}">
         <div class="grade-letter">${g.label}</div>
         <div class="grade-comment">${g.comment}</div>
-        <div class="share-row"><button id="btn-share" type="button">🔗 결과 공유 링크 복사</button></div>
+        <div class="share-row"><button id="btn-share" type="button">🔗 Copy shareable result link</button></div>
       </div>
       ${rerollHtml}
       ${warnHtml}
       ${gaugeHtml}
-      <h3>힘의 구슬 수지</h3>
+      <h3>Orbs of Power Ledger</h3>
       <table class="ledger">
-        <tr><th>레벨업으로 획득한 구슬</th><td>${r.earned}개</td></tr>
-        <tr><th>파라메터에 사용 (실패 없음)</th><td>${r.paramCost}개</td></tr>
-        <tr><th>마법·특수기술 습득에 사용</th><td>${r.spellOrbs}개</td></tr>
-        <tr><th>미사용 보유 구슬</th><td>${r.unspent}개</td></tr>
-        <tr><th>기능 훈련에 사용된 구슬 (추정)</th><td>${r.adjustedSkillSpend}개</td></tr>
-        <tr><th>기능 이론 최소 비용 (전부 1트 성공 시)</th><td>${r.skillMin}개</td></tr>
-        <tr><th>기능 평균 기대 비용 (확률성·보장성 중 유리한 쪽 선택 기준)</th><td>${fmt(r.skillExpected)}개</td></tr>
-        <tr class="waste"><th>실패로 소실된 것으로 추정되는 구슬</th><td>${r.wasted}개</td></tr>
+        <tr><th>Orbs earned from leveling</th><td>${r.earned}</td></tr>
+        <tr><th>Spent on parameters (no failure)</th><td>${r.paramCost}</td></tr>
+        <tr><th>Spent learning spells and skills</th><td>${r.spellOrbs}</td></tr>
+        <tr><th>Unspent orbs held</th><td>${r.unspent}</td></tr>
+        <tr><th>Spent on skill training (estimated)</th><td>${r.adjustedSkillSpend}</td></tr>
+        <tr><th>Theoretical minimum (every attempt succeeds)</th><td>${r.skillMin}</td></tr>
+        <tr><th>Expected cost (choosing chance vs guaranteed optimally)</th><td>${fmt(r.skillExpected)}</td></tr>
+        <tr class="waste"><th>Orbs likely lost to failures</th><td>${r.wasted}</td></tr>
       </table>
       ${vitalHtml}
-      <h3>${GAME.jobs[input.mainJob].name} 육성 팁</h3>
+      <h3>${GAME.jobs[input.mainJob].name} Growth Tips</h3>
       <ul class="comments">${tips}</ul>
-      <p class="fine-print">* 기능 성공률·마법 습득 비용은 스팀 공식 가이드, 보장성 훈련 비용은 인게임 확인 수치 기준입니다.
-      기대 비용은 레벨 구간마다 확률성(1개, 실패 소실)과 보장성(확정 소모) 중 유리한 쪽을 선택한다고 가정합니다.
-      퀘스트·이벤트로 얻은 추가 구슬은 계산에 포함되지 않습니다.</p>`;
+      <p class="fine-print">* Success rates and spell costs are from the official Steam guides; guaranteed training costs verified in game.
+      Expected costs assume choosing whichever of chance training (1 orb, lost on failure) or guaranteed training is cheaper at each level.
+      Extra orbs from quests and events are not included.</p>`;
     box.hidden = false;
     $('#btn-share').addEventListener('click', async () => {
       const url = encodeShare(input);
@@ -1036,11 +1036,11 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       const btn = $('#btn-share');
       try {
         await navigator.clipboard.writeText(url);
-        btn.textContent = '✓ 복사 완료! 커뮤니티에 붙여넣어 보세요';
+        btn.textContent = '✓ Copied! Paste it anywhere';
       } catch (e) {
-        btn.textContent = '주소창의 URL을 복사해서 공유하세요';
+        btn.textContent = 'Copy the URL from the address bar to share';
       }
-      setTimeout(() => { btn.textContent = '🔗 결과 공유 링크 복사'; }, 4000);
+      setTimeout(() => { btn.textContent = '🔗 Copy shareable result link'; }, 4000);
     });
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
