@@ -229,13 +229,6 @@
   <p class="subtitle">GODIUS Eternal War — diagnose your character growth through the Orbs of Power ledger</p>
   <nav class="guide-nav">
     <a href="../">🇰🇷 한국어 (Korean version)</a>
-    
-    
-    
-    
-    
-    
-    
     <a href="../feedback.html">💬 Feedback</a>
     
   </nav>
@@ -592,6 +585,45 @@ function rerollCheck(level, skills, unspent) {
   return { top, status, needMin, expected, future, available, targetLevel: R.targetLevel, goal: R.skillGoal };
 }
 
+// 리세마라 성공 확률 몬테카를로 시뮬레이션.
+// 정책: 낮은 목표 레벨부터 확률성으로 진행하되, 남은 전 구간을 보장성으로
+// 확정 마감할 수 있는 예산이 되는 순간 보장성으로 전환(=성공 확정)한다.
+function rerollSuccessProb(level, skills, unspent, trials = 10000) {
+  const R = GAME.reroll;
+  if (level > R.targetLevel) return null;
+  const top = Object.entries(skills || {}).sort((a, b) => b[1] - a[1]).slice(0, R.skillCount);
+  if (top.length < R.skillCount) return null;
+  if (top.every(([, lv]) => lv >= R.skillGoal)) return 1;
+
+  const budget = earnedOrbs(R.targetLevel) - earnedOrbs(level) + (unspent || 0);
+  // 남은 목표 레벨 단계 (두 기능 합침, 성공률 높은 낮은 레벨부터)
+  const steps = [];
+  for (const [, lv] of top) {
+    for (let v = Math.min(lv, R.skillGoal) + 1; v <= R.skillGoal; v++) steps.push(v);
+  }
+  steps.sort((a, b) => a - b);
+  const guarTotal = steps.reduce((s, v) => s + skillGuaranteedAt(v), 0);
+
+  let ok = 0;
+  for (let t = 0; t < trials; t++) {
+    let b = budget;
+    let remGuar = guarTotal;
+    let i = 0;
+    let dead = false;
+    while (i < steps.length) {
+      if (b >= remGuar) break; // 남은 구간 전부 보장성 마감 가능 → 성공 확정
+      if (b <= 0) { dead = true; break; }
+      b--; // 확률성 1회 시도
+      if (Math.random() < skillRateAt(steps[i])) {
+        remGuar -= skillGuaranteedAt(steps[i]);
+        i++;
+      }
+    }
+    if (!dead) ok++;
+  }
+  return ok / trials;
+}
+
 function gradeOf(ratio) {
   if (ratio >= 1.3) return 'S';
   if (ratio >= 1.1) return 'A';
@@ -694,7 +726,7 @@ const GodiusCalc = {
   orbsAtLevel, earnedOrbs, paramUpCost, rawStatCost, paramCost,
   skillRateAt, skillGuaranteedAt, skillStepCost, trainingAdvice,
   availableSpellGroups, spellCost, autoAllocate, evaluateVitals,
-  skillMinCost, skillExpectedCost, gradeOf, rerollCheck, evaluate,
+  skillMinCost, skillExpectedCost, gradeOf, rerollCheck, rerollSuccessProb, evaluate,
 };
 if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
 </script>
@@ -951,6 +983,12 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       };
       const [label, desc] = RR_INFO[rr.status];
       const topText = rr.top.map((t) => `${t.name} Lv${t.lv}`).join(' · ');
+      const prob = rerollSuccessProb(input.level, input.skills, r.unspent);
+      let probText = '';
+      if (prob !== null) {
+        const pct = Math.round(prob * 100);
+        probText = prob > 0 && pct === 0 ? 'under 1%' : `≈ ${pct}%`;
+      }
       rerollHtml = `
         <div class="reroll-card reroll-${rr.status}">
           <div class="reroll-head">Reroll Check <span class="reroll-badge">${label}</span></div>
@@ -958,6 +996,8 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
           <p class="reroll-detail">Goal: two skills at ${rr.goal}/${rr.goal} by Lv${rr.targetLevel} · current top skills: ${topText}</p>
           <p class="reroll-detail">Remaining <b>${rr.available}</b> orbs (from level-ups ${rr.future} + held ${r.unspent})
             / minimum needed <b>${rr.needMin}</b> / expected <b>${fmt(rr.expected)}</b></p>
+          ${probText ? `<p class="reroll-detail">🎲 Simulation (10,000 runs): success probability <b>${probText}</b>
+            <span class="hint">(chance training first, switching to guaranteed once affordable)</span></p>` : ''}
         </div>`;
     } else if (input.rerollMode) {
       rerollHtml = `<p class="warning">The reroll check is only available at level 50 or below.</p>`;

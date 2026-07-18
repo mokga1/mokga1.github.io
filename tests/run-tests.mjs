@@ -140,6 +140,21 @@ test('rerollCheck: 레벨 50 초과는 null', () => {
   assert.equal(C.rerollCheck(51, { 검술: 25, 회피술: 25 }, 0), null);
 });
 
+// --- 리세마라 성공 확률 시뮬레이션 ---
+test('rerollSuccessProb: 이미 달성이면 1', () =>
+  assert.equal(C.rerollSuccessProb(50, { 검술: 25, 회피술: 25 }, 0), 1));
+test('rerollSuccessProb: 수학적 불가능이면 0', () =>
+  assert.equal(C.rerollSuccessProb(49, { 검술: 20, 회피술: 20 }, 0, 2000), 0)); // 남은 10단계 > 예산 4
+test('rerollSuccessProb: 보장성 마감 가능하면 1', () =>
+  assert.equal(C.rerollSuccessProb(30, { 검술: 24, 회피술: 24 }, 0, 2000), 1)); // 보장성 20개 <= 예산 80
+test('rerollSuccessProb: 0과 1 사이의 확률 반환', () => {
+  const p = C.rerollSuccessProb(42, { 검술: 25, 회피술: 22 }, 3, 4000);
+  assert.ok(p > 0 && p <= 1, `got ${p}`); // 회피 22→25 잔여, 자원 35개면 대부분 성공
+  assert.ok(p > 0.8, `expected high prob, got ${p}`); // 남은 보장성 30 <= 35 → 사실상 확정
+});
+test('rerollSuccessProb: 레벨 50 초과는 null', () =>
+  assert.equal(C.rerollSuccessProb(51, { 검술: 25, 회피술: 25 }, 0), null));
+
 // --- 등급 ---
 test('gradeOf 경계값', () => {
   assert.equal(C.gradeOf(1.3), 'S');

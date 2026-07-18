@@ -10,6 +10,7 @@ const SITE = 'https://mokga1.github.io';
 
 const pages = [
   'index.html', 'feedback.html', 'about.html', 'privacy.html',
+  'guide/index.html', 'guide/monsters.html', 'guide/steam-differences.html',
   'guide/orbs.html', 'guide/beginner.html', 'guide/reroll.html',
   'guide/warrior.html', 'guide/fighter.html', 'guide/thief.html',
   'guide/wizard.html', 'guide/cleric.html',
@@ -22,7 +23,9 @@ for (const p of pages) {
 
   const title = (html.match(/<title>([^<]+)<\/title>/) || [])[1] || '가디우스 캐릭터 평가기';
   const desc = (html.match(/<meta name="description" content="([^"]+)"/) || [])[1] || '';
-  const url = p === 'index.html' ? `${SITE}/` : `${SITE}/${p}`;
+  const url = p === 'index.html' ? `${SITE}/`
+    : p === 'guide/index.html' ? `${SITE}/guide/`
+    : `${SITE}/${p}`;
 
   const tags = [
     `<link rel="canonical" href="${url}">`,

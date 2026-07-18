@@ -228,14 +228,7 @@
   <h1>가디우스 캐릭터 육성 평가기</h1>
   <p class="subtitle">GODIUS Eternal War — 힘의 구슬 수지로 내 캐릭터가 잘 컸는지 진단합니다</p>
   <nav class="guide-nav">
-    <a href="guide/orbs.html">📖 구슬 시스템</a>
-    <a href="guide/beginner.html">초보 가이드</a>
-    <a href="guide/reroll.html">리세마라</a>
-    <a href="guide/warrior.html">전사 공략</a>
-    <a href="guide/fighter.html">검투사 공략</a>
-    <a href="guide/thief.html">도둑 공략</a>
-    <a href="guide/wizard.html">마법사 공략</a>
-    <a href="guide/cleric.html">성직자 공략</a>
+    <a href="guide/">📚 공략 가이드</a>
     <a href="feedback.html">💬 피드백</a>
     <a href="en/">🇺🇸 English</a>
   </nav>
@@ -592,6 +585,45 @@ function rerollCheck(level, skills, unspent) {
   return { top, status, needMin, expected, future, available, targetLevel: R.targetLevel, goal: R.skillGoal };
 }
 
+// 리세마라 성공 확률 몬테카를로 시뮬레이션.
+// 정책: 낮은 목표 레벨부터 확률성으로 진행하되, 남은 전 구간을 보장성으로
+// 확정 마감할 수 있는 예산이 되는 순간 보장성으로 전환(=성공 확정)한다.
+function rerollSuccessProb(level, skills, unspent, trials = 10000) {
+  const R = GAME.reroll;
+  if (level > R.targetLevel) return null;
+  const top = Object.entries(skills || {}).sort((a, b) => b[1] - a[1]).slice(0, R.skillCount);
+  if (top.length < R.skillCount) return null;
+  if (top.every(([, lv]) => lv >= R.skillGoal)) return 1;
+
+  const budget = earnedOrbs(R.targetLevel) - earnedOrbs(level) + (unspent || 0);
+  // 남은 목표 레벨 단계 (두 기능 합침, 성공률 높은 낮은 레벨부터)
+  const steps = [];
+  for (const [, lv] of top) {
+    for (let v = Math.min(lv, R.skillGoal) + 1; v <= R.skillGoal; v++) steps.push(v);
+  }
+  steps.sort((a, b) => a - b);
+  const guarTotal = steps.reduce((s, v) => s + skillGuaranteedAt(v), 0);
+
+  let ok = 0;
+  for (let t = 0; t < trials; t++) {
+    let b = budget;
+    let remGuar = guarTotal;
+    let i = 0;
+    let dead = false;
+    while (i < steps.length) {
+      if (b >= remGuar) break; // 남은 구간 전부 보장성 마감 가능 → 성공 확정
+      if (b <= 0) { dead = true; break; }
+      b--; // 확률성 1회 시도
+      if (Math.random() < skillRateAt(steps[i])) {
+        remGuar -= skillGuaranteedAt(steps[i]);
+        i++;
+      }
+    }
+    if (!dead) ok++;
+  }
+  return ok / trials;
+}
+
 function gradeOf(ratio) {
   if (ratio >= 1.3) return 'S';
   if (ratio >= 1.1) return 'A';
@@ -694,7 +726,7 @@ const GodiusCalc = {
   orbsAtLevel, earnedOrbs, paramUpCost, rawStatCost, paramCost,
   skillRateAt, skillGuaranteedAt, skillStepCost, trainingAdvice,
   availableSpellGroups, spellCost, autoAllocate, evaluateVitals,
-  skillMinCost, skillExpectedCost, gradeOf, rerollCheck, evaluate,
+  skillMinCost, skillExpectedCost, gradeOf, rerollCheck, rerollSuccessProb, evaluate,
 };
 if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
 </script>
@@ -951,6 +983,12 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
       };
       const [label, desc] = RR_INFO[rr.status];
       const topText = rr.top.map((t) => `${t.name} Lv${t.lv}`).join(' · ');
+      const prob = rerollSuccessProb(input.level, input.skills, r.unspent);
+      let probText = '';
+      if (prob !== null) {
+        const pct = Math.round(prob * 100);
+        probText = prob > 0 && pct === 0 ? '1% 미만' : `약 ${pct}%`;
+      }
       rerollHtml = `
         <div class="reroll-card reroll-${rr.status}">
           <div class="reroll-head">리세마라 진단 <span class="reroll-badge">${label}</span></div>
@@ -958,6 +996,8 @@ if (typeof globalThis !== 'undefined') globalThis.GodiusCalc = GodiusCalc;
           <p class="reroll-detail">기준: Lv${rr.targetLevel}까지 기능 2개 ${rr.goal}/${rr.goal} · 현재 상위 기능: ${topText}</p>
           <p class="reroll-detail">남은 자원 <b>${rr.available}개</b> (레벨업 ${rr.future} + 보유 ${r.unspent})
             / 최소 필요 <b>${rr.needMin}개</b> / 평균 기대 <b>${fmt(rr.expected)}개</b></p>
+          ${probText ? `<p class="reroll-detail">🎲 시뮬레이션 10,000회: 목표 달성 확률 <b>${probText}</b>
+            <span class="hint">(확률성 위주 진행, 여유가 생기면 보장성 마감 가정)</span></p>` : ''}
         </div>`;
     } else if (input.rerollMode) {
       rerollHtml = `<p class="warning">리세마라 진단은 레벨 50 이하에서만 제공됩니다.</p>`;
