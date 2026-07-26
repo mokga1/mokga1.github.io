@@ -397,7 +397,7 @@
       <p>Turn on the reroll check and it works out whether the orbs left before level 50 can still reach the goal (two skills at 25/25). If you cannot even cover the theoretical minimum it is <b>mathematically impossible</b>, so reroll now. Falling a little short of the average expectation is worth pushing through. A 10,000-run simulation gives you the success probability as well.</p>
 
       <p class="faq-q">Q. How does the sub job factor into the grade?</p>
-      <p>Sub-job skills consume orbs too, so they are counted in the training cost like any other. Note that the Steam release (Eternal War) opens <b>only four</b> sub jobs — Alchemist, Tailor, Blacksmith and Bard — and Gladiators cannot take Alchemist.</p>
+      <p>Sub-job skills consume orbs too, so they are counted in the training cost like any other. Note that the Steam release (Eternal War) opens <b>only four</b> sub jobs — Alchemist, Tailor, Blacksmith and Bard. Any main job may take any of the four.</p>
 
       <p class="faq-q">Q. Can I just follow Korean-server guides?</p>
       <p>Not safely. The Steam version differs in available sub jobs, item tiers and which maps are open. Before trusting an older community guide, check <a href="../guide/steam-differences.html">the Steam server differences page</a> (Korean).</p>
@@ -469,8 +469,8 @@ const GAME = {
     blacksmith: { name: 'Blacksmith', skills: ['Blunt Mastery', 'Weapon Crafting', 'Weapon Repair'] },
     bard:       { name: 'Bard',     skills: ['Spear Mastery', 'Singing'] },
   },
-  // 주직업별 선택 불가 보조직업 (검투사는 연금술사 불가)
-  subJobBlock: { fighter: ['alchemist'] },
+  // 주직업별 선택 불가 보조직업. 현재 확인된 제약 없음 (검투사+연금술사도 가능 — 인게임 확인, 2026-07)
+  subJobBlock: {},
   totalInitial: 72,        // 생성 시 전체 파라메터 합
   creationMaxPerStat: 15,  // 생성 시 스탯당 최대치
   statMax: 30,             // 파라메터 최대치

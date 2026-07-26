@@ -226,9 +226,15 @@ test('evaluate: 획득량 초과 소비는 오류', () => {
   const r = C.evaluate({ ...baseInput, level: 2, stats: { STR: 20, AGR: 12, DEX: 15, INT: 10, VIT: 15, MEN: 10 } });
   assert.equal(r.ok, false);
 });
-test('evaluate: 검투사 + 연금술사 보조 불가', () => {
+test('evaluate: 검투사 + 연금술사 보조 가능 (제약 없음)', () => {
   const r = C.evaluate({ ...baseInput, mainJob: 'fighter', subJob: 'alchemist', stats: { STR: 15, AGR: 9, DEX: 9, INT: 9, VIT: 15, MEN: 15 } });
-  assert.equal(r.ok, false);
+  assert.ok(r.ok);
+});
+test('subJobBlock: 빈 제약이면 자기 자신만 제외하고 전부 허용', () => {
+  assert.deepEqual(C.GAME.subJobBlock, {});
+  // 주직업과 보조직업이 같은 경우는 별도 규칙으로 계속 차단되어야 한다
+  const same = C.evaluate({ ...baseInput, mainJob: 'warrior', subJob: 'warrior' });
+  assert.equal(same.ok, false);
 });
 test('evaluate: 스팀판에 없는 보조직업(전사)은 오류', () => {
   const r = C.evaluate({ ...baseInput, subJob: 'warrior' });
