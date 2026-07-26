@@ -217,9 +217,31 @@
   }
   .guide-nav a:hover { border-color: var(--gold); }
   .site-footer a { color: var(--gold); }
+  /* ── 하단 해설 문서 ── */
+  .doc { margin-top: 44px; }
+  .doc-lead { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+  .doc .step { line-height: 1.75; }
+  .doc h3 { color: var(--gold); font-size: 15px; margin: 20px 0 6px; }
+  .doc p { margin: 8px 0; }
+  .doc ul { padding-left: 20px; margin: 8px 0; }
+  .doc li { margin: 6px 0; }
+  .doc a { color: var(--gold); }
+  .doc table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  .doc th, .doc td { border: 1px solid var(--border); padding: 7px 10px; font-size: 14px; text-align: center; }
+  .doc th { background: var(--panel-2); color: var(--gold); }
+  .doc td.left, .doc th.left { text-align: left; }
+  .doc .faq-q { color: var(--gold); font-weight: 700; margin: 18px 0 2px; }
+  .doc .faq-q:first-of-type { margin-top: 4px; }
+  .read-more { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .read-more a {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 12px; font-size: 13px; text-decoration: none; color: var(--text);
+  }
+  .read-more a:hover { border-color: var(--gold); }
   @media (max-width: 560px) {
     .grade-letter { font-size: 56px; }
     .ledger th { width: 60%; }
+    .doc th, .doc td { padding: 6px 6px; font-size: 13px; }
   }
 </style>
 </head>
@@ -295,11 +317,117 @@
 
   <section id="result" class="result" hidden></section>
 
+  <article class="doc">
+    <p class="doc-lead">— How this evaluation works —</p>
+
+    <section class="step">
+      <h2>What does this evaluator calculate?</h2>
+      <p>In Godius exactly one resource decides how strong a character becomes: the <b>Orb of Power</b>. Orbs come only from leveling up, and you spend them raising parameters or training skills. The catch is that skill training can <b>fail</b> — and a failed attempt burns the orb for nothing.</p>
+      <p>That is why two characters of the same level and job can be worlds apart. Good luck or a smart choice of training method leaves you far ahead in skill levels; the opposite leaves you standing still with nothing to show for the orbs.</p>
+      <p>This tool puts a number on that gap. From your level it derives <b>how many orbs you should have earned</b>, subtracts the fixed amounts spent on parameters and learned spells, and works backwards to <b>the orbs actually burned on skill training</b>. Comparing that against the <b>expected cost</b> from the official success-rate table gives your grade.</p>
+      <p>Everything is computed inside your own browser — the character data you type is never sent to a server.</p>
+    </section>
+
+    <section class="step">
+      <h2>How many orbs does each level give?</h2>
+      <p>The payout per level-up depends on the level bracket. The mid bracket (11–30) is the stingiest, so orbs wasted there take a long time to earn back.</p>
+      <table>
+        <tr><th>Level bracket</th><th>2~10</th><th>11~30</th><th>31~50</th><th>51~70</th><th>71~80</th><th>81~90</th><th>91+</th></tr>
+        <tr><td>Orbs per level-up</td><td>3</td><td>2</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr>
+      </table>
+      <p>That totals just <b>147 orbs</b> by level 50, and only <b>449</b> by the level 99 cap. Hold those numbers against the training costs below and it becomes obvious why the reroll target of "two skills at 25/25" is so tight.</p>
+    </section>
+
+    <section class="step">
+      <h2>Where do the orbs go?</h2>
+      <h3>1. Raising parameters — never fails</h3>
+      <p>Raising STR, AGR, DEX, INT, VIT and MEN never fails. It simply gets more expensive the higher you push.</p>
+      <table>
+        <tr><th>Target value</th><th>~15</th><th>16~20</th><th>21~25</th><th>26~30</th></tr>
+        <tr><td>Orbs per +1</td><td>1</td><td>3</td><td>4</td><td>5</td></tr>
+      </table>
+      <p>The creation screen lets you reach 15 using free bonus points. That is exactly why <b>getting your key stats to 15 at creation</b> is the standard advice — reaching the same 15 later with orbs costs several times as much.</p>
+
+      <h3>2. Learning spells and special skills — never fails</h3>
+      <p>Some high-end spells and special skills charge orbs just to learn (Firestorm 5, Shield Block 5, Power Shield 5, and so on). There is no failure risk, but during a reroll run these are heavy expenses best postponed.</p>
+
+      <h3>3. Skill training — where characters diverge</h3>
+      <p>Skill training comes in two flavors.</p>
+      <ul>
+        <li><b>Chance training</b> — stake one orb on a roll. On a failure the orb is simply gone.</li>
+        <li><b>Guaranteed training</b> — pay a fixed price for a certain success: 2, 3, 5, 10 or 15 orbs depending on the bracket.</li>
+      </ul>
+      <table>
+        <tr><th>Target skill level</th><th>2~3</th><th>10</th><th>15</th><th>20</th><th>21~25</th><th>26~30</th></tr>
+        <tr><td>Chance success rate</td><td>90%</td><td>55%</td><td>35%</td><td>12%</td><td>10%</td><td>6%</td></tr>
+        <tr><td>Guaranteed cost</td><td>2</td><td>2</td><td>3</td><td>5</td><td>10</td><td>15</td></tr>
+      </table>
+      <p>The lower the success rate, the worse chance training looks in <b>expected value</b>. In the 6% bracket it burns roughly 17 orbs on average for a single level, while guaranteed training locks it in at 15. This evaluator uses <b>a rational player who picks the cheaper option in every bracket</b> as its baseline and measures your real spending against it.</p>
+    </section>
+
+    <section class="step">
+      <h2>How is the S–F grade decided?</h2>
+      <p>Efficiency = <b>expected cost ÷ orbs actually spent</b>. Exactly 1.0 is average; above 1.0 means you saved orbs compared to the baseline.</p>
+      <table>
+        <tr><th>Grade</th><th>Efficiency</th><th class="left">What it means</th></tr>
+        <tr><td><b>S</b></td><td>1.30 and up</td><td class="left">Finished at 77% of the expected cost or less — both luck and planning went your way</td></tr>
+        <tr><td><b>A</b></td><td>1.10 ~ 1.29</td><td class="left">Above average; your choice of training method was sound</td></tr>
+        <tr><td><b>B</b></td><td>0.90 ~ 1.09</td><td class="left">Average — where most players land</td></tr>
+        <tr><td><b>C</b></td><td>0.70 ~ 0.89</td><td class="left">Failures have piled up a little</td></tr>
+        <tr><td><b>D</b></td><td>0.50 ~ 0.69</td><td class="left">Nearly twice the expected cost — lean on guaranteed training</td></tr>
+        <tr><td><b>F</b></td><td>below 0.50</td><td class="left">The result of sticking to chance training through the low brackets</td></tr>
+      </table>
+      <p>A low grade is no reason to scrap the character. Switching to guaranteed training for the remaining levels pulls the index back up. If you are <b>still under level 50</b> and rerolling is the goal, see the cut-loss rule in the FAQ below.</p>
+    </section>
+
+    <section class="step">
+      <h2>Frequently asked questions</h2>
+
+      <p class="faq-q">Q. Why do I have to enter unspent orbs?</p>
+      <p>Because working backwards to your training spend needs "total earned − fixed spending − not yet spent". Leave the unspent orbs out and that amount is counted as burned on training, dragging your grade below the truth. You can read the number off the character select screen.</p>
+
+      <p class="faq-q">Q. Do I have to enter HP/MP/SP?</p>
+      <p>They are optional; supply them and you also get a level-up growth-luck check. They must be <b>raw maximums with equipment and buffs excluded</b> — gear bonuses mixed in will show up as "above range".</p>
+
+      <p class="faq-q">Q. It says I spent more orbs than obtainable.</p>
+      <p>Usually a learned spell is left unchecked or a parameter is mistyped — check that the values match your status window exactly. It can also happen legitimately if you picked up extra orbs from quests or events, since those are outside this calculation.</p>
+
+      <p class="faq-q">Q. When should I give up on a reroll?</p>
+      <p>Turn on the reroll check and it works out whether the orbs left before level 50 can still reach the goal (two skills at 25/25). If you cannot even cover the theoretical minimum it is <b>mathematically impossible</b>, so reroll now. Falling a little short of the average expectation is worth pushing through. A 10,000-run simulation gives you the success probability as well.</p>
+
+      <p class="faq-q">Q. How does the sub job factor into the grade?</p>
+      <p>Sub-job skills consume orbs too, so they are counted in the training cost like any other. Note that the Steam release (Eternal War) opens <b>only four</b> sub jobs — Alchemist, Tailor, Blacksmith and Bard — and Gladiators cannot take Alchemist.</p>
+
+      <p class="faq-q">Q. Can I just follow Korean-server guides?</p>
+      <p>Not safely. The Steam version differs in available sub jobs, item tiers and which maps are open. Before trusting an older community guide, check <a href="../guide/steam-differences.html">the Steam server differences page</a> (Korean).</p>
+
+      <p class="faq-q">Q. A number here does not match my game.</p>
+      <p>An update may have changed it. Let us know on the <a href="../feedback.html">feedback board</a> and it will be verified and corrected.</p>
+    </section>
+
+    <section class="step">
+      <h2>More guides (Korean)</h2>
+      <div class="read-more">
+        <!-- 심화 가이드는 아직 한국어만 제공 -->
+        <a href="../guide/beginner.html">Beginner's guide</a>
+        <a href="../guide/orbs.html">Orbs of Power system</a>
+        <a href="../guide/reroll.html">Reroll guide</a>
+        <a href="../guide/steam-differences.html">Steam vs Korean server</a>
+        <a href="../guide/monsters.html">Hunting grounds &amp; monsters</a>
+        <a href="../guide/warrior.html">Warrior</a>
+        <a href="../guide/fighter.html">Gladiator</a>
+        <a href="../guide/thief.html">Thief</a>
+        <a href="../guide/wizard.html">Wizard</a>
+        <a href="../guide/cleric.html">Priest</a>
+      </div>
+    </section>
+  </article>
+
   <footer class="site-footer">
     <p>Data: <a href="https://www.godius.co.kr/" target="_blank" rel="noopener">Godius Official Website</a> ·
     <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3750780737" target="_blank" rel="noopener">Official Steam Guides</a>
     (success rates · spell costs · job skills)</p>
-    <p><a href="../about.html">About</a> · <a href="../privacy.html">Privacy Policy</a> · <a href="../feedback.html">Feedback</a></p>
+    <p><a href="../about.html">About</a> · <a href="../privacy.html">Privacy Policy</a> · <a href="../terms.html">Terms of Use</a> · <a href="../feedback.html">Feedback</a></p>
   </footer>
 </main>
 

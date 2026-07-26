@@ -9,7 +9,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = 'https://mokga1.github.io';
 
 const pages = [
-  'index.html', 'feedback.html', 'about.html', 'privacy.html',
+  'index.html', 'feedback.html', 'about.html', 'privacy.html', 'terms.html',
   'guide/index.html', 'guide/monsters.html', 'guide/steam-differences.html',
   'guide/orbs.html', 'guide/beginner.html', 'guide/reroll.html',
   'guide/warrior.html', 'guide/fighter.html', 'guide/thief.html',

@@ -217,9 +217,31 @@
   }
   .guide-nav a:hover { border-color: var(--gold); }
   .site-footer a { color: var(--gold); }
+  /* ── 하단 해설 문서 ── */
+  .doc { margin-top: 44px; }
+  .doc-lead { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+  .doc .step { line-height: 1.75; }
+  .doc h3 { color: var(--gold); font-size: 15px; margin: 20px 0 6px; }
+  .doc p { margin: 8px 0; }
+  .doc ul { padding-left: 20px; margin: 8px 0; }
+  .doc li { margin: 6px 0; }
+  .doc a { color: var(--gold); }
+  .doc table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  .doc th, .doc td { border: 1px solid var(--border); padding: 7px 10px; font-size: 14px; text-align: center; }
+  .doc th { background: var(--panel-2); color: var(--gold); }
+  .doc td.left, .doc th.left { text-align: left; }
+  .doc .faq-q { color: var(--gold); font-weight: 700; margin: 18px 0 2px; }
+  .doc .faq-q:first-of-type { margin-top: 4px; }
+  .read-more { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .read-more a {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 12px; font-size: 13px; text-decoration: none; color: var(--text);
+  }
+  .read-more a:hover { border-color: var(--gold); }
   @media (max-width: 560px) {
     .grade-letter { font-size: 56px; }
     .ledger th { width: 60%; }
+    .doc th, .doc td { padding: 6px 6px; font-size: 13px; }
   }
 </style>
 </head>
@@ -295,11 +317,116 @@
 
   <section id="result" class="result" hidden></section>
 
+  <article class="doc">
+    <p class="doc-lead">— 평가 기준과 계산 방식 안내 —</p>
+
+    <section class="step">
+      <h2>이 평가기는 무엇을 계산하나요?</h2>
+      <p>가디우스에서 캐릭터의 강함을 결정하는 자원은 딱 하나, <b>힘의 구슬</b>입니다. 레벨업으로만 얻을 수 있고, 파라메터를 올리거나 기능(스킬)을 훈련하는 데 씁니다. 문제는 기능 훈련에 <b>실패</b>가 있다는 점입니다. 실패하면 구슬은 그대로 사라집니다.</p>
+      <p>그래서 같은 레벨, 같은 직업이어도 캐릭터의 완성도는 크게 벌어집니다. 운이 좋았거나 훈련 방식을 잘 골랐다면 남들보다 훨씬 높은 기능 레벨을 갖게 되고, 반대라면 구슬만 날리고 제자리입니다.</p>
+      <p>이 도구는 그 격차를 숫자로 보여줍니다. 입력한 레벨로 <b>지금까지 얻었어야 할 구슬 총량</b>을 구하고, 파라메터와 습득 마법에 확정적으로 들어간 양을 빼서 <b>기능 훈련에 실제로 소모한 구슬</b>을 역산합니다. 이 값을 공식 성공률표에서 나오는 <b>기대 비용</b>과 비교한 비율이 등급이 됩니다.</p>
+      <p>모든 계산은 방문자의 브라우저 안에서만 이루어지며, 입력한 캐릭터 정보는 서버로 전송되지 않습니다.</p>
+    </section>
+
+    <section class="step">
+      <h2>힘의 구슬은 레벨마다 얼마나 나오나요?</h2>
+      <p>레벨업 1회당 획득량은 레벨 구간에 따라 달라집니다. 중반 구간(11~30)이 가장 적어서, 이 시기에 구슬을 낭비하면 회복하는 데 오래 걸립니다.</p>
+      <table>
+        <tr><th>레벨 구간</th><th>2~10</th><th>11~30</th><th>31~50</th><th>51~70</th><th>71~80</th><th>81~90</th><th>91+</th></tr>
+        <tr><td>레벨업당 구슬</td><td>3</td><td>2</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr>
+      </table>
+      <p>레벨 50까지 누적하면 총 <b>147개</b>, 만렙 99까지 모아도 <b>449개</b>뿐입니다. 리세마라 목표인 "기능 2개 25/25"가 왜 빡빡한지는 이 숫자를 아래 훈련 비용과 견줘보면 바로 보입니다.</p>
+    </section>
+
+    <section class="step">
+      <h2>구슬은 어디에 쓰이나요?</h2>
+      <h3>1. 파라메터 상승 — 실패 없음</h3>
+      <p>STR·AGR·DEX·INT·VIT·MEN을 올리는 데는 실패가 없습니다. 다만 수치가 높아질수록 비싸집니다.</p>
+      <table>
+        <tr><th>목표 수치</th><th>~15</th><th>16~20</th><th>21~25</th><th>26~30</th></tr>
+        <tr><td>1 올릴 때 구슬</td><td>1</td><td>3</td><td>4</td><td>5</td></tr>
+      </table>
+      <p>캐릭터 생성 화면에서는 15까지를 보너스 포인트로 올릴 수 있습니다. <b>주요 스탯 15는 반드시 생성 시점에 맞춰두는 것</b>이 정석인 이유입니다. 나중에 구슬로 올리면 같은 15가 몇 배 비쌉니다.</p>
+
+      <h3>2. 마법·특수기술 습득 — 실패 없음</h3>
+      <p>일부 상위 마법과 특수기술은 배울 때 구슬을 요구합니다(파이어스톰 5개, 실드블럭 5개, 파워실드 5개 등). 실패는 없지만 리세마라 구간에서는 큰 지출이라 미뤄두는 편이 낫습니다.</p>
+
+      <h3>3. 기능 훈련 — 여기서 승부가 갈립니다</h3>
+      <p>기능 훈련에는 두 가지 방식이 있습니다.</p>
+      <ul>
+        <li><b>확률성 훈련</b> — 구슬 1개를 걸고 확률로 도전합니다. 실패하면 구슬만 사라집니다.</li>
+        <li><b>보장성 훈련</b> — 정해진 구슬을 내고 100% 성공합니다. 레벨 구간별로 2·3·5·10·15개.</li>
+      </ul>
+      <table>
+        <tr><th>목표 기능 레벨</th><th>2~3</th><th>10</th><th>15</th><th>20</th><th>21~25</th><th>26~30</th></tr>
+        <tr><td>확률성 성공률</td><td>90%</td><td>55%</td><td>35%</td><td>12%</td><td>10%</td><td>6%</td></tr>
+        <tr><td>보장성 비용</td><td>2</td><td>2</td><td>3</td><td>5</td><td>10</td><td>15</td></tr>
+      </table>
+      <p>성공률이 낮아질수록 확률성의 <b>기댓값</b>이 나빠집니다. 성공률 6% 구간에서 확률성은 평균 약 17개를 태워야 1레벨이 오르는데, 보장성은 15개로 확정입니다. 이 평가기는 구간마다 <b>둘 중 싼 쪽을 고르는 합리적인 유저</b>를 기준선으로 삼아 여러분의 실제 소모량과 비교합니다.</p>
+    </section>
+
+    <section class="step">
+      <h2>S~F 등급은 어떻게 정해지나요?</h2>
+      <p>효율 지수 = <b>기대 비용 ÷ 실제 소모 구슬</b>입니다. 1.0이면 딱 평균, 1보다 크면 평균보다 구슬을 아낀 것입니다.</p>
+      <table>
+        <tr><th>등급</th><th>효율 지수</th><th class="left">의미</th></tr>
+        <tr><td><b>S</b></td><td>1.30 이상</td><td class="left">기대치의 77% 이하로 끝냈습니다. 운과 계획이 모두 좋았던 경우</td></tr>
+        <tr><td><b>A</b></td><td>1.10 ~ 1.29</td><td class="left">평균 이상. 훈련 방식 선택이 합리적이었습니다</td></tr>
+        <tr><td><b>B</b></td><td>0.90 ~ 1.09</td><td class="left">평균 수준. 대부분의 유저가 여기에 들어옵니다</td></tr>
+        <tr><td><b>C</b></td><td>0.70 ~ 0.89</td><td class="left">실패가 조금 누적됐습니다</td></tr>
+        <tr><td><b>D</b></td><td>0.50 ~ 0.69</td><td class="left">기대치의 2배 가까이 소모. 보장성 활용을 권합니다</td></tr>
+        <tr><td><b>F</b></td><td>0.50 미만</td><td class="left">저레벨 구간에서 확률성만 고집했을 때 나오는 결과입니다</td></tr>
+      </table>
+      <p>등급이 낮다고 캐릭터를 버릴 필요는 없습니다. 남은 레벨 구간에서 보장성 훈련으로 전환하면 지수는 회복됩니다. 다만 <b>레벨 50 이전</b>이고 목표가 리세마라라면, 아래 FAQ의 손절 기준을 참고하세요.</p>
+    </section>
+
+    <section class="step">
+      <h2>자주 묻는 질문</h2>
+
+      <p class="faq-q">Q. 미사용 구슬은 왜 입력해야 하나요?</p>
+      <p>기능 훈련에 쓴 구슬을 역산하려면 "얻은 총량 − 확정 지출 − 아직 안 쓴 양"이 필요하기 때문입니다. 미사용 구슬을 빼먹으면 그만큼을 훈련에 태운 것으로 계산돼 등급이 실제보다 낮게 나옵니다. 캐릭터 선택 화면에서 확인할 수 있습니다.</p>
+
+      <p class="faq-q">Q. HP/MP/SP는 꼭 넣어야 하나요?</p>
+      <p>선택 입력입니다. 넣으면 레벨업 성장운을 따로 진단해줍니다. 단, <b>장비와 버프를 뺀 순수 최대치</b>여야 합니다. 장비 보정이 섞이면 "범위 초과"로 표시됩니다.</p>
+
+      <p class="faq-q">Q. "획득 가능한 구슬보다 많이 소비했다"고 나옵니다.</p>
+      <p>대개 습득한 마법 체크가 빠졌거나, 파라메터를 잘못 입력한 경우입니다. 스탯창의 현재 수치를 그대로 넣었는지 확인해보세요. 퀘스트나 이벤트로 추가 구슬을 받았다면 이 계산에 반영되지 않아 정상적으로도 발생할 수 있습니다.</p>
+
+      <p class="faq-q">Q. 리세마라는 언제 손절해야 하나요?</p>
+      <p>리세마라 진단을 켜면 레벨 50까지 남은 구슬로 목표(기능 2개 25/25)에 도달할 수 있는지 계산합니다. <b>최소 필요량조차 못 채우면 수학적으로 불가능</b>하므로 즉시 재생성이 답입니다. 평균 기대치보다 조금 모자란 정도라면 밀어붙일 만합니다. 10,000회 시뮬레이션으로 성공 확률도 함께 보여줍니다.</p>
+
+      <p class="faq-q">Q. 보조직업은 평가에 어떻게 반영되나요?</p>
+      <p>보조직업 기능도 구슬을 소모하므로 훈련 비용 계산에 그대로 포함됩니다. 다만 스팀판(Eternal War)은 보조직업이 연금술사·재봉사·대장장이·바드 <b>4종만</b> 열려 있고, 검투사는 연금술사를 고를 수 없습니다.</p>
+
+      <p class="faq-q">Q. 한국 서버 공략을 그대로 따라 해도 되나요?</p>
+      <p>아닙니다. 스팀판은 보조직업 종류, 아이템 단계, 개방된 맵이 다릅니다. 오래된 카페 공략을 보기 전에 <a href="guide/steam-differences.html">스팀 서버 차이 정리</a>를 먼저 확인하세요.</p>
+
+      <p class="faq-q">Q. 수치가 게임과 다릅니다.</p>
+      <p>업데이트로 값이 바뀌었을 수 있습니다. <a href="feedback.html">피드백 게시판</a>에 알려주시면 확인 후 반영합니다.</p>
+    </section>
+
+    <section class="step">
+      <h2>더 자세한 공략</h2>
+      <div class="read-more">
+        <a href="guide/beginner.html">초보자 가이드</a>
+        <a href="guide/orbs.html">힘의 구슬 시스템 총정리</a>
+        <a href="guide/reroll.html">리세마라 실전 가이드</a>
+        <a href="guide/steam-differences.html">스팀 vs 한국 서버 차이</a>
+        <a href="guide/monsters.html">사냥터 · 몬스터 도감</a>
+        <a href="guide/warrior.html">전사</a>
+        <a href="guide/fighter.html">검투사</a>
+        <a href="guide/thief.html">도둑</a>
+        <a href="guide/wizard.html">마법사</a>
+        <a href="guide/cleric.html">성직자</a>
+      </div>
+    </section>
+  </article>
+
   <footer class="site-footer">
     <p>데이터 출처: <a href="https://www.godius.co.kr/" target="_blank" rel="noopener">가디우스 공식 홈페이지</a> ·
     <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3750780737" target="_blank" rel="noopener">스팀 공식 가이드</a>
     (기능 성공률표 · 마법 습득 비용 · 직업별 스킬)</p>
-    <p><a href="about.html">소개</a> · <a href="privacy.html">개인정보처리방침</a> · <a href="feedback.html">피드백</a></p>
+    <p><a href="about.html">소개</a> · <a href="privacy.html">개인정보처리방침</a> · <a href="terms.html">이용약관</a> · <a href="feedback.html">피드백</a></p>
   </footer>
 </main>
 
