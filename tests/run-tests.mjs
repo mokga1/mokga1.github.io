@@ -249,4 +249,109 @@ test('evaluate: 생성 배분(72) 모순 입력은 오류', () => {
   assert.equal(r.ok, false);
 });
 
+// ============================================================
+// 훈련 시뮬레이터 (trainer.html)
+// ============================================================
+const trainerHtml = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'trainer.html'), 'utf8');
+const tData = trainerHtml.match(/<script id="trainer-data">([\s\S]*?)<\/script>/);
+const tCore = trainerHtml.match(/<script id="trainer-core">([\s\S]*?)<\/script>/);
+assert.ok(tData, 'trainer.html에서 trainer-data 블록을 찾지 못했습니다');
+assert.ok(tCore, 'trainer.html에서 trainer-core 블록을 찾지 못했습니다');
+const { D, T } = new Function(
+  `${tData[1]}\n${tCore[1]}\n return { D: TRAINER_DATA, T: TrainerCore };`
+)();
+
+// --- index.html과 데이터 동기화 (build-trainer.mjs를 잊고 안 돌린 경우를 잡는다) ---
+test('trainer 데이터: index.html의 성공률표와 일치', () => {
+  assert.deepEqual(D.skillRatePct, C.GAME.skillRatePct);
+});
+test('trainer 데이터: index.html의 보장성 비용표와 일치', () => {
+  assert.deepEqual(D.skillGuaranteedTiers, C.GAME.skillGuaranteedTiers);
+});
+test('trainer 데이터: 직업·보조직업 기능 목록이 index.html과 일치', () => {
+  for (const [k, j] of Object.entries(C.GAME.jobs)) assert.deepEqual(D.jobs[k].skills, j.skills);
+  for (const [k, j] of Object.entries(C.GAME.subJobs)) assert.deepEqual(D.subJobs[k].skills, j.skills);
+  assert.deepEqual(D.subJobBlock, C.GAME.subJobBlock);
+  assert.equal(D.skillMax, C.GAME.skillMax);
+});
+
+// --- 성공률·비용 조회 ---
+test('trainer: 성공률 경계값 (2=90%, 20=12%, 21=10%, 26=6%)', () => {
+  assert.equal(T.stepInfo(D, 1).ratePct, 90);
+  assert.equal(T.stepInfo(D, 19).ratePct, 12);
+  assert.equal(T.stepInfo(D, 20).ratePct, 10);
+  assert.equal(T.stepInfo(D, 25).ratePct, 6);
+});
+test('trainer: 보장성 비용 구간 (10=2, 15=3, 20=5, 25=10, 30=15)', () => {
+  assert.equal(T.guaranteedCostAt(D, 10), 2);
+  assert.equal(T.guaranteedCostAt(D, 15), 3);
+  assert.equal(T.guaranteedCostAt(D, 20), 5);
+  assert.equal(T.guaranteedCostAt(D, 25), 10);
+  assert.equal(T.guaranteedCostAt(D, 30), 15);
+});
+test('trainer: 최대 레벨에서는 stepInfo가 null', () => {
+  assert.equal(T.stepInfo(D, 30), null);
+  assert.ok(T.stepInfo(D, 29));
+});
+
+// --- 확률성 판정 (난수 주입으로 결정적으로 검증) ---
+test('trainer: 확률성은 난수가 성공률 미만이면 성공, 이상이면 실패', () => {
+  const win = T.tryChance(D, 1, 10, () => 0.5);   // 목표 2레벨 = 90%
+  assert.equal(win.ok, true);
+  assert.equal(win.level, 2);
+  assert.equal(win.spent, 1);
+
+  const lose = T.tryChance(D, 1, 10, () => 0.95);
+  assert.equal(lose.ok, false);
+  assert.equal(lose.level, 1);   // 레벨 유지
+  assert.equal(lose.spent, 1);   // 실패해도 구슬은 소모
+});
+test('trainer: 성공률 경계에서 난수가 정확히 같으면 실패 처리', () => {
+  // 목표 21레벨 = 10% → rng 0.10은 실패, 0.09999는 성공
+  assert.equal(T.tryChance(D, 20, 5, () => 0.1).ok, false);
+  assert.equal(T.tryChance(D, 20, 5, () => 0.09999).ok, true);
+});
+test('trainer: 구슬이 없으면 확률성 불가', () => {
+  assert.equal(T.tryChance(D, 1, 0, () => 0).error, 'orbs');
+});
+test('trainer: 최대 레벨에서는 훈련 불가', () => {
+  assert.equal(T.tryChance(D, 30, 99, () => 0).error, 'max');
+  assert.equal(T.tryGuaranteed(D, 30, 99).error, 'max');
+});
+
+// --- 보장성 ---
+test('trainer: 보장성은 항상 성공하고 구간 비용을 소모', () => {
+  const r = T.tryGuaranteed(D, 20, 50); // 목표 21 → 10개
+  assert.equal(r.ok, true);
+  assert.equal(r.level, 21);
+  assert.equal(r.spent, 10);
+});
+test('trainer: 보장성도 구슬이 모자라면 불가', () => {
+  assert.equal(T.tryGuaranteed(D, 20, 9).error, 'orbs');
+});
+
+// --- 기대 비용이 평가기 로직과 같은 기준인지 ---
+test('trainer: 1→25 기대 비용이 평가기의 skillExpectedCost와 일치', () => {
+  const mine = T.expectedCost(D, 1, 25);
+  const theirs = C.skillExpectedCost({ a: 25 });
+  assert.ok(Math.abs(mine - theirs) < 1e-9, `${mine} vs ${theirs}`);
+});
+test('trainer: 18레벨 구간은 확률성과 보장성 기댓값이 동률', () => {
+  assert.equal(T.stepExpected(D, 18), 5);          // 1/0.20 === 5 === 보장성 5개
+  assert.ok(T.stepExpected(D, 19) < 1 / T.rateAt(D, 19)); // 19부터는 보장성이 싸다
+});
+
+// --- 자동 굴리기가 구슬을 넘겨 쓰지 않는지 (루프 안전성) ---
+test('trainer: 구슬만큼만 확률성을 시도할 수 있다', () => {
+  let orbs = 3, level = 1, tries = 0;
+  while (orbs > 0) {
+    const r = T.tryChance(D, level, orbs, () => 0.99); // 항상 실패
+    if (r.error) break;
+    orbs -= r.spent; level = r.level; tries++;
+  }
+  assert.equal(tries, 3);
+  assert.equal(orbs, 0);
+  assert.equal(level, 1);
+});
+
 console.log(process.exitCode ? '\n일부 테스트 실패' : `\n전체 ${passed}개 테스트 통과`);

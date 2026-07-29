@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>힘의 구슬 훈련 시뮬레이터 — 가디우스</title>
+<meta name="description" content="가디우스(Godius Eternal War) 기능 훈련을 실제 확률 그대로 연습해보는 시뮬레이터. 직업·기능 레벨·보유 구슬을 넣고 확률성과 보장성을 팅겨보며 손익을 미리 확인하세요.">
+<link rel="canonical" href="https://mokga1.github.io/trainer.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="가디우스 캐릭터 평가기">
+<meta property="og:title" content="힘의 구슬 훈련 시뮬레이터 — 가디우스">
+<meta property="og:description" content="가디우스(Godius Eternal War) 기능 훈련을 실제 확률 그대로 연습해보는 시뮬레이터. 직업·기능 레벨·보유 구슬을 넣고 확률성과 보장성을 팅겨보며 손익을 미리 확인하세요.">
+<meta property="og:url" content="https://mokga1.github.io/trainer.html">
+<meta property="og:locale" content="ko_KR">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1461632031345453" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="guide/style.css">
+<style>
+  .mode-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .mode-tabs button {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 8px 18px; font-size: 14px; cursor: pointer; font-family: inherit;
+  }
+  .mode-tabs button.on { background: var(--gold); color: #241b14; font-weight: 800; border-color: var(--gold); }
+  .job-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .job-btn {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 7px 16px; font-size: 14px; cursor: pointer; font-family: inherit;
+  }
+  .job-btn:hover:not(:disabled) { border-color: var(--gold); }
+  .job-btn.selected { background: var(--gold); color: #241b14; font-weight: 800; border-color: var(--gold); }
+  .job-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .field-label { color: var(--muted); font-size: 13px; margin: 14px 0 2px; }
+  input[type=number], select {
+    background: #171009; color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; font-size: 15px; font-family: inherit;
+  }
+  input[type=number] { width: 84px; }
+  select { min-width: 180px; }
+  input:focus, select:focus { outline: none; border-color: var(--gold); }
+  .orb-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+
+  /* ── 기능 목록 ── */
+  .skill-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-top: 10px; }
+  .skill-row {
+    display: flex; align-items: center; gap: 10px; background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  }
+  .skill-row.picked { border-color: var(--gold); }
+  .skill-row .nm { flex: 1; font-size: 14px; }
+  .skill-row .lv { width: 62px; }
+  .skill-row .maxed { color: var(--muted); font-size: 12px; }
+  .skill-row button {
+    background: linear-gradient(180deg, #e0b45e, #b8853a); color: #241207; border: none;
+    border-radius: 7px; font-size: 13px; font-weight: 800; padding: 6px 12px; cursor: pointer; font-family: inherit;
+  }
+  .skill-row button:disabled { opacity: .4; cursor: not-allowed; filter: grayscale(.6); }
+
+  /* ── 게임풍 훈련 창 ── */
+  .train-window {
+    max-width: 420px; margin: 18px auto 0; border: 3px solid #6b4f2e; border-radius: 6px;
+    background: linear-gradient(180deg, #3a2c1d, #2a2015); box-shadow: 0 6px 22px rgba(0,0,0,.55);
+    overflow: hidden;
+  }
+  .tw-title {
+    background: linear-gradient(180deg, #7b5c34, #4e3a21); color: #f0dcae; text-align: center;
+    font-weight: 800; letter-spacing: 3px; padding: 6px; border-bottom: 2px solid #6b4f2e; font-size: 15px;
+  }
+  .tw-body { padding: 14px 16px 16px; }
+  .tw-screen {
+    background: #d9cfa8; color: #241b14; border: 2px inset #8a7448; border-radius: 3px;
+    padding: 10px 12px; font-size: 14px; line-height: 1.6; min-height: 66px;
+  }
+  .tw-screen .sk { font-weight: 800; }
+  .tw-screen .rate { color: #7a3b1c; font-weight: 800; }
+  .tw-msg { margin-top: 6px; font-weight: 800; }
+  .tw-msg.ok { color: #1f6b2f; }
+  .tw-msg.no { color: #a32b1c; }
+  .tw-orbs {
+    display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+    color: #f0dcae; font-weight: 800; margin-top: 12px; font-size: 15px;
+  }
+  .tw-orbs .n { background: #d9cfa8; color: #241b14; border: 2px inset #8a7448; padding: 2px 12px; border-radius: 3px; min-width: 64px; text-align: right; }
+  .tw-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .tw-actions button {
+    flex: 1; min-width: 120px; border: 2px outset #8a7448; border-radius: 4px; cursor: pointer;
+    padding: 9px 6px; font-size: 14px; font-weight: 800; font-family: inherit;
+    background: linear-gradient(180deg, #8a6a3c, #5c4526); color: #f0dcae;
+  }
+  .tw-actions button:hover:not(:disabled) { filter: brightness(1.15); }
+  .tw-actions button:disabled { opacity: .45; cursor: not-allowed; }
+  .tw-actions button.cancel { flex: 0 0 auto; min-width: 88px; background: linear-gradient(180deg, #6b5c4c, #443a2f); }
+  .auto-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .auto-row button {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 7px; padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .auto-row button:hover:not(:disabled) { border-color: var(--gold); }
+  .auto-row button:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── 통계 ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 6px; }
+  .stat-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; text-align: center; }
+  .stat-box .k { color: var(--muted); font-size: 12px; }
+  .stat-box .v { color: var(--gold); font-size: 20px; font-weight: 800; margin-top: 2px; }
+  .verdict { margin-top: 12px; padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--border); background: rgba(0,0,0,.18); }
+  .verdict.good { border-left-color: var(--green); color: var(--green); }
+  .verdict.bad { border-left-color: var(--red); color: #eea79b; }
+  .verdict.mid { border-left-color: #e5c07b; color: #e5c07b; }
+  .log { max-height: 220px; overflow-y: auto; margin-top: 8px; font-size: 13px; }
+  .log div { padding: 3px 0; border-bottom: 1px solid rgba(74,56,38,.5); }
+  .log .s { color: var(--green); }
+  .log .f { color: #eea79b; }
+  .log .g { color: #e5c07b; }
+  .log .lvup { color: var(--gold); font-weight: 800; }
+  .btn-line { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .btn-line button {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .btn-line button:hover { border-color: var(--gold); }
+  .note { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  @media (max-width: 560px) {
+    .train-window { max-width: 100%; }
+    .skill-list { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <h1>힘의 구슬 훈련 시뮬레이터</h1>
+  <p class="subtitle">실제 게임과 같은 확률로 기능 훈련을 연습해봅니다 — 구슬을 태우기 전에</p>
+</header>
+<nav class="guide-nav">
+  <a href="./">캐릭터 평가기</a>
+  <a href="guide/">📚 공략 가이드</a>
+  <a href="trainer.html" class="current">🎲 훈련 시뮬레이터</a>
+  <a href="feedback.html">💬 피드백</a>
+</nav>
+<main>
+  <section class="card">
+    <h2>연습 방식 고르기</h2>
+    <div class="mode-tabs">
+      <button type="button" id="mode-char" class="on">캐릭터 기준으로</button>
+      <button type="button" id="mode-free">제한 없이 팅겨보기</button>
+    </div>
+    <p class="note" id="mode-desc">내 직업과 기능 레벨, 보유 구슬을 그대로 넣고 실제 상황을 연습합니다.</p>
+  </section>
+
+  <!-- ── 캐릭터 모드 ── -->
+  <section class="card" id="panel-char">
+    <h2>1. 직업 선택</h2>
+    <div class="field-label">주직업</div>
+    <div class="job-grid" id="main-job-grid"></div>
+    <div class="field-label">보조직업</div>
+    <div class="job-grid" id="sub-job-grid"></div>
+
+    <h2 style="margin-top:22px">2. 보유 힘의 구슬</h2>
+    <div class="orb-row">
+      <label for="inp-orbs">현재 가지고 있는 구슬</label>
+      <input type="number" id="inp-orbs" min="0" max="9999" value="30">
+      <span class="hint">캐릭터 선택 화면에서 확인할 수 있습니다</span>
+    </div>
+
+    <h2 style="margin-top:22px">3. 기능 레벨을 맞추고 훈련하기</h2>
+    <p class="hint">현재 기능 레벨을 입력한 뒤 <b>훈련</b>을 누르면 아래에 훈련 창이 열립니다.</p>
+    <div class="skill-list" id="skill-list"></div>
+  </section>
+
+  <!-- ── 자유 모드 ── -->
+  <section class="card" id="panel-free" hidden>
+    <h2>자유롭게 팅겨보기</h2>
+    <p class="hint">직업이나 보유량 제한 없이, 아무 기능이나 골라 원하는 만큼 굴려볼 수 있습니다.</p>
+    <div class="orb-row">
+      <label for="sel-free-skill">기능</label>
+      <select id="sel-free-skill"></select>
+      <label for="inp-free-lv">시작 레벨</label>
+      <input type="number" id="inp-free-lv" min="1" value="1">
+      <label for="inp-free-orbs">구슬</label>
+      <input type="number" id="inp-free-orbs" min="0" max="99999" value="500">
+    </div>
+    <div class="btn-line">
+      <button type="button" id="btn-free-start">이 설정으로 시작</button>
+      <button type="button" id="btn-free-infinite">구슬 무한으로 시작</button>
+    </div>
+  </section>
+
+  <!-- ── 훈련 창 ── -->
+  <section class="card" id="panel-train" hidden>
+    <h2>훈련</h2>
+    <div class="train-window">
+      <div class="tw-title" id="tw-title">확 률 성</div>
+      <div class="tw-body">
+        <div class="tw-screen">
+          <div><span class="sk" id="tw-skill">기능</span> Level:<span id="tw-level">1</span></div>
+          <div id="tw-need">1개의 구슬이 필요합니다.</div>
+          <div>성공 확률 <span class="rate" id="tw-rate">90%</span></div>
+          <div class="tw-msg" id="tw-msg"></div>
+        </div>
+        <div class="tw-orbs">힘의구슬 <span class="n" id="tw-orbs">0</span></div>
+        <div class="tw-actions">
+          <button type="button" id="btn-chance">확률성 (1개)</button>
+          <button type="button" id="btn-guaranteed">보장성 (10개)</button>
+          <button type="button" id="btn-close" class="cancel">취소</button>
+        </div>
+      </div>
+    </div>
+    <div class="auto-row">
+      <button type="button" id="btn-auto10">확률성 10회 연속</button>
+      <button type="button" id="btn-auto-goal">목표 레벨까지 자동</button>
+      <input type="number" id="inp-goal" min="2" max="30" value="25" style="width:70px">
+      <button type="button" id="btn-auto-burn">구슬 다 쓸 때까지</button>
+    </div>
+    <p class="note">자동 굴리기는 확률성만 사용합니다. 보장성이 유리한 구간에서 얼마나 손해가 나는지 직접 확인해보세요.</p>
+  </section>
+
+  <!-- ── 통계 ── -->
+  <section class="card" id="panel-stats" hidden>
+    <h2>이번 연습 기록</h2>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="k">기능 레벨</div><div class="v" id="st-level">1 → 1</div></div>
+      <div class="stat-box"><div class="k">시도 횟수</div><div class="v" id="st-tries">0</div></div>
+      <div class="stat-box"><div class="k">성공 / 실패</div><div class="v" id="st-sf">0 / 0</div></div>
+      <div class="stat-box"><div class="k">쓴 구슬</div><div class="v" id="st-spent">0</div></div>
+      <div class="stat-box"><div class="k">남은 구슬</div><div class="v" id="st-left">0</div></div>
+    </div>
+    <div class="verdict" id="st-verdict">아직 훈련 기록이 없습니다.</div>
+    <div class="btn-line">
+      <button type="button" id="btn-reset">기록 초기화</button>
+      <button type="button" id="btn-clear-log">로그 지우기</button>
+    </div>
+    <h3>시도 로그</h3>
+    <div class="log" id="log"><div class="hint">아직 기록이 없습니다.</div></div>
+  </section>
+
+  <!-- ── 해설 ── -->
+  <article class="doc">
+    <section class="card">
+      <h2>이 시뮬레이터는 무엇인가요?</h2>
+      <p>가디우스에서 기능을 올리는 방법은 두 가지입니다. <b>확률성 훈련</b>은 힘의 구슬 1개를 걸고
+      확률에 도전하는 방식으로, 실패하면 구슬이 그대로 사라집니다.
+      <b>보장성 훈련</b>은 정해진 구슬을 내고 100% 성공하는 방식입니다.</p>
+      <p>문제는 확률성의 성공률이 레벨이 오를수록 가파르게 떨어진다는 점입니다.
+      레벨 2에서는 90%지만 21~25 구간에서는 10%, 26~30 구간에서는 6%까지 내려갑니다.
+      머리로는 "10%면 열 번쯤 하면 되겠지" 싶어도, 실제로는 스무 번 넘게 미끄러지는 일이 흔합니다.</p>
+      <p>이 페이지는 <b>그 감각을 구슬을 잃지 않고 미리 겪어보게</b> 합니다.
+      게임 안의 훈련 창을 그대로 흉내 냈고, 확률도 공식 성공률표를 그대로 씁니다.
+      여기서 아무리 굴려도 실제 캐릭터에는 아무 영향이 없습니다.</p>
+      <p>내 캐릭터가 지금까지 구슬을 얼마나 효율적으로 썼는지 진단받고 싶다면
+      <a href="./">캐릭터 평가기</a>를 이용하세요.</p>
+    </section>
+
+    <section class="card">
+      <h2>레벨별 성공률과 보장성 비용</h2>
+      <p>아래 수치는 스팀 공식 가이드의 성공률표와 인게임에서 확인한 보장성 비용입니다.
+      시뮬레이터도 정확히 이 값으로 동작합니다.</p>
+      <table id="rate-table"></table>
+      <p>표를 보면 <b>기댓값이 뒤집히는 지점</b>이 보입니다. 성공률 20%인 18레벨 구간에서
+      확률성의 기대 비용은 1 ÷ 0.20 = 5개인데, 보장성도 5개입니다. 정확히 같습니다.
+      19레벨부터는 확률성이 더 비싸집니다.</p>
+      <p>정리하면 <b>2~17은 확률성, 19~20은 보장성, 21~25는 동률, 26~30은 보장성</b>이 유리합니다.
+      동률 구간에서는 실패 위험이 없는 보장성을 권합니다.
+      기댓값이 같다면 결과가 흔들리지 않는 쪽이 낫기 때문입니다.</p>
+    </section>
+
+    <section class="card">
+      <h2>이렇게 써보세요</h2>
+      <ul>
+        <li><b>21~25 구간을 확률성으로 뚫어보기</b> — 성공률 10% 구간을 25까지 확률성만으로 밀어보면
+        구슬이 얼마나 필요한지 몸으로 알게 됩니다. 평균 50개인데, 운이 나쁘면 100개를 넘기기도 합니다.</li>
+        <li><b>지금 내 구슬로 어디까지 가는지</b> — 캐릭터 기준 모드에 실제 보유량을 넣고
+        "구슬 다 쓸 때까지"를 눌러보세요. 목표 레벨에 닿을 수 있는 양인지 감이 옵니다.</li>
+        <li><b>보장성으로 바꿀 타이밍 찾기</b> — 같은 상황을 확률성으로만, 그리고 보장성을 섞어서
+        각각 돌려보면 왜 19레벨부터 방식을 바꾸라고 하는지 숫자로 보입니다.</li>
+        <li><b>리세마라 목표가 왜 빡센지</b> — 기능 하나를 1에서 25까지 올리는 데 평균 96개가 듭니다.
+        두 개면 193개인데 레벨 50까지 받는 구슬은 147개뿐입니다.
+        자세한 계산은 <a href="guide/reroll.html">리세마라 가이드</a>에 있습니다.</li>
+      </ul>
+      <p class="hint">난수는 브라우저의 난수 생성기를 사용하며, 매 시도는 앞선 결과와 무관하게 독립적으로 판정됩니다.
+      실제 게임의 내부 처리와 완전히 같다고 보장할 수는 없으나, 공개된 성공률표를 그대로 따릅니다.</p>
+    </section>
+  </article>
+
+  <footer class="site-footer">
+    <p>데이터: <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3750780737" target="_blank" rel="noopener">스팀 공식 가이드</a> (기능 성공률표) ·
+    보장성 비용은 인게임 확인 수치</p>
+    <p><a href="./">캐릭터 평가기</a> · <a href="guide/">공략 가이드</a> ·
+    <a href="about.html">소개</a> · <a href="privacy.html">개인정보처리방침</a> ·
+    <a href="terms.html">이용약관</a></p>
+  </footer>
+</main>
+
+<script id="trainer-data">
+/* GAMEDATA:START */
+const TRAINER_DATA = {
+  "jobs": {
+    "warrior": {
+      "name": "전사",
+      "skills": [
+        "검술",
+        "부술",
+        "둔기술",
+        "격술",
+        "회피술"
+      ]
+    },
+    "fighter": {
+      "name": "검투사",
+      "skills": [
+        "부술",
+        "둔기술",
+        "회피술",
+        "창술",
+        "암살검술",
+        "격술"
+      ]
+    },
+    "thief": {
+      "name": "도둑",
+      "skills": [
+        "부술",
+        "암살검술",
+        "회피술",
+        "함정발견",
+        "해체술",
+        "연막치기",
+        "떨어뜨리기"
+      ]
+    },
+    "wizard": {
+      "name": "마법사",
+      "skills": [
+        "격술",
+        "화염마법",
+        "냉동마법",
+        "중성마법"
+      ]
+    },
+    "cleric": {
+      "name": "성직자",
+      "skills": [
+        "둔기술",
+        "신성마법",
+        "중성마법"
+      ]
+    }
+  },
+  "subJobs": {
+    "alchemist": {
+      "name": "연금술사",
+      "skills": [
+        "부술",
+        "화학",
+        "응급처치"
+      ]
+    },
+    "tailor": {
+      "name": "재봉사",
+      "skills": [
+        "검술",
+        "옷제작",
+        "옷수선"
+      ]
+    },
+    "blacksmith": {
+      "name": "대장장이",
+      "skills": [
+        "둔기술",
+        "무기제작",
+        "무기수선"
+      ]
+    },
+    "bard": {
+      "name": "바드",
+      "skills": [
+        "창술",
+        "주가"
+      ]
+    }
+  },
+  "subJobBlock": {},
+  "skillMax": 30,
+  "skillRatePct": {
+    "2": 90,
+    "3": 90,
+    "4": 85,
+    "5": 80,
+    "6": 75,
+    "7": 70,
+    "8": 65,
+    "9": 60,
+    "10": 55,
+    "11": 50,
+    "12": 50,
+    "13": 45,
+    "14": 40,
+    "15": 35,
+    "16": 30,
+    "17": 25,
+    "18": 20,
+    "19": 15,
+    "20": 12,
+    "21": 10,
+    "22": 10,
+    "23": 10,
+    "24": 10,
+    "25": 10,
+    "26": 6,
+    "27": 6,
+    "28": 6,
+    "29": 6,
+    "30": 6
+  },
+  "skillGuaranteedTiers": [
+    [
+      10,
+      2
+    ],
+    [
+      15,
+      3
+    ],
+    [
+      20,
+      5
+    ],
+    [
+      25,
+      10
+    ],
+    [
+      30,
+      15
+    ]
+  ]
+};
+/* GAMEDATA:END */
+</script>
+
+<script id="trainer-core">
+// ============================================================
+// 훈련 판정 로직 (순수 함수 — tests/run-tests.mjs에서 검증)
+// ============================================================
+function rateAt(D, target) {
+  return (D.skillRatePct[target] ?? 0) / 100;
+}
+
+function guaranteedCostAt(D, target) {
+  const tier = D.skillGuaranteedTiers.find(([max]) => target <= max);
+  return tier ? tier[1] : null;
+}
+
+// 다음 레벨 한 단계에 대한 정보. 최대 레벨이면 null.
+function stepInfo(D, level) {
+  const target = level + 1;
+  if (target > D.skillMax) return null;
+  return {
+    target,
+    ratePct: D.skillRatePct[target] ?? 0,
+    chanceCost: 1,
+    guaranteedCost: guaranteedCostAt(D, target),
+  };
+}
+
+// 확률성 1회 시도. rng는 [0,1) 난수 함수 (테스트에서 주입 가능)
+// 반환: { kind:'chance', ok, spent, level } — 구슬 부족·최대레벨이면 { error }
+function tryChance(D, level, orbs, rng = Math.random) {
+  const info = stepInfo(D, level);
+  if (!info) return { error: 'max' };
+  if (orbs < info.chanceCost) return { error: 'orbs' };
+  const ok = rng() < info.ratePct / 100;
+  return { kind: 'chance', ok, spent: info.chanceCost, level: ok ? level + 1 : level };
+}
+
+// 보장성 1회. 100% 성공하지만 구슬이 모자라면 불가.
+function tryGuaranteed(D, level, orbs) {
+  const info = stepInfo(D, level);
+  if (!info) return { error: 'max' };
+  if (orbs < info.guaranteedCost) return { error: 'orbs' };
+  return { kind: 'guaranteed', ok: true, spent: info.guaranteedCost, level: level + 1 };
+}
+
+// 합리적 유저의 한 단계 기대 비용: 확률성 기대값과 보장성 중 싼 쪽
+function stepExpected(D, target) {
+  const rate = rateAt(D, target);
+  const g = guaranteedCostAt(D, target);
+  if (!rate) return g;
+  return Math.min(1 / rate, g);
+}
+
+// from 레벨에서 to 레벨까지의 누적 기대 비용
+function expectedCost(D, from, to) {
+  let sum = 0;
+  for (let v = from + 1; v <= to; v++) sum += stepExpected(D, v);
+  return sum;
+}
+
+const TrainerCore = {
+  rateAt, guaranteedCostAt, stepInfo, tryChance, tryGuaranteed, stepExpected, expectedCost,
+};
+if (typeof module !== 'undefined') module.exports = TrainerCore;
+</script>
+
+<script id="trainer-ui">
+(function () {
+  const D = TRAINER_DATA;
+  const $ = (s) => document.querySelector(s);
+  const MAX = D.skillMax;
+
+  const state = {
+    mode: 'char',
+    mainJob: null,
+    subJob: null,
+    orbs: 30,
+    infinite: false,
+    skillLevels: {},   // 기능명 -> 레벨
+    active: null,      // 훈련 중인 기능명
+    startLevel: 1,
+    tries: 0, wins: 0, fails: 0, spent: 0,
+    log: [],
+  };
+
+  // ── 기능 목록 ──
+  function skillsOf(main, sub) {
+    const a = main ? D.jobs[main].skills : [];
+    const b = sub ? D.subJobs[sub].skills : [];
+    return [...new Set([...a, ...b])];
+  }
+  function allSkills() {
+    return [...new Set([
+      ...Object.values(D.jobs).flatMap((j) => j.skills),
+      ...Object.values(D.subJobs).flatMap((j) => j.skills),
+    ])].sort((a, b) => a.localeCompare(b, 'ko'));
+  }
+  function allowedSubs(main) {
+    const blocked = D.subJobBlock[main] || [];
+    return Object.keys(D.subJobs).filter((k) => k !== main && !blocked.includes(k));
+  }
+
+  // ── 모드 전환 ──
+  function setMode(m) {
+    state.mode = m;
+    $('#mode-char').classList.toggle('on', m === 'char');
+    $('#mode-free').classList.toggle('on', m === 'free');
+    $('#panel-char').hidden = m !== 'char';
+    $('#panel-free').hidden = m !== 'free';
+    $('#mode-desc').textContent = m === 'char'
+      ? '내 직업과 기능 레벨, 보유 구슬을 그대로 넣고 실제 상황을 연습합니다.'
+      : '직업·보유량 제한 없이 아무 기능이나 원하는 만큼 굴려봅니다.';
+    closeTrain();
+  }
+
+  // ── 직업 버튼 ──
+  function renderJobs() {
+    const mg = $('#main-job-grid'); mg.innerHTML = '';
+    for (const [k, j] of Object.entries(D.jobs)) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'job-btn' + (state.mainJob === k ? ' selected' : '');
+      b.textContent = j.name;
+      b.addEventListener('click', () => {
+        state.mainJob = k;
+        if (state.subJob && !allowedSubs(k).includes(state.subJob)) state.subJob = null;
+        closeTrain(); renderJobs(); renderSkills();
+      });
+      mg.appendChild(b);
+    }
+    const sg = $('#sub-job-grid'); sg.innerHTML = '';
+    const allowed = state.mainJob ? allowedSubs(state.mainJob) : Object.keys(D.subJobs);
+    for (const [k, j] of Object.entries(D.subJobs)) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'job-btn' + (state.subJob === k ? ' selected' : '');
+      b.textContent = j.name;
+      b.disabled = !allowed.includes(k);
+      b.addEventListener('click', () => { state.subJob = k; closeTrain(); renderJobs(); renderSkills(); });
+      sg.appendChild(b);
+    }
+  }
+
+  // ── 기능 목록 ──
+  function renderSkills() {
+    const box = $('#skill-list'); box.innerHTML = '';
+    if (!state.mainJob || !state.subJob) {
+      box.innerHTML = '<p class="hint">주직업과 보조직업을 모두 선택하면 기능 목록이 나옵니다.</p>';
+      return;
+    }
+    for (const name of skillsOf(state.mainJob, state.subJob)) {
+      if (state.skillLevels[name] == null) state.skillLevels[name] = 1;
+      const lv = state.skillLevels[name];
+      const row = document.createElement('div');
+      row.className = 'skill-row' + (state.active === name ? ' picked' : '');
+      row.innerHTML =
+        `<span class="nm">${name}</span>` +
+        `<input class="lv" type="number" min="1" max="${MAX}" value="${lv}">` +
+        (lv >= MAX ? '<span class="maxed">MAX</span>' : '<button type="button">훈련</button>');
+      const input = row.querySelector('input');
+      input.addEventListener('input', () => {
+        const v = Math.max(1, Math.min(MAX, parseInt(input.value, 10) || 1));
+        state.skillLevels[name] = v;
+        if (state.active === name) { state.startLevel = v; resetStats(); paintTrain(); }
+        renderSkills();
+      });
+      const btn = row.querySelector('button');
+      if (btn) btn.addEventListener('click', () => openTrain(name, state.skillLevels[name]));
+      box.appendChild(row);
+    }
+  }
+
+  // ── 자유 모드 ──
+  function renderFree() {
+    const sel = $('#sel-free-skill'); sel.innerHTML = '';
+    for (const n of allSkills()) {
+      const o = document.createElement('option');
+      o.value = n; o.textContent = n; sel.appendChild(o);
+    }
+  }
+
+  // ── 훈련 창 ──
+  function openTrain(name, level, opts = {}) {
+    state.active = name;
+    state.startLevel = level;
+    state.skillLevels[name] = level;
+    if (opts.orbs != null) state.orbs = opts.orbs;
+    state.infinite = !!opts.infinite;
+    resetStats();
+    $('#panel-train').hidden = false;
+    $('#panel-stats').hidden = false;
+    paintTrain(); paintStats(); renderSkills();
+    $('#panel-train').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function closeTrain() {
+    state.active = null;
+    $('#panel-train').hidden = true;
+    $('#panel-stats').hidden = true;
+    renderSkills();
+  }
+
+  function curLevel() { return state.skillLevels[state.active] ?? 1; }
+
+  function paintTrain() {
+    const name = state.active;
+    if (!name) return;
+    const lv = curLevel();
+    const info = TrainerCore.stepInfo(D, lv);
+    $('#tw-skill').textContent = name;
+    $('#tw-level').textContent = lv;
+    $('#tw-orbs').textContent = state.infinite ? '∞' : state.orbs;
+
+    if (!info) {
+      $('#tw-need').textContent = '최대 레벨입니다. 더 올릴 수 없습니다.';
+      $('#tw-rate').textContent = '—';
+      $('#btn-chance').disabled = true;
+      $('#btn-guaranteed').disabled = true;
+      setAutoDisabled(true);
+      return;
+    }
+    $('#tw-need').textContent = `${info.chanceCost}개의 구슬이 필요합니다.`;
+    $('#tw-rate').textContent = `${info.ratePct}%`;
+    $('#btn-chance').textContent = `확률성 (${info.chanceCost}개)`;
+    $('#btn-guaranteed').textContent = `보장성 (${info.guaranteedCost}개)`;
+    const orbs = state.infinite ? Infinity : state.orbs;
+    $('#btn-chance').disabled = orbs < info.chanceCost;
+    $('#btn-guaranteed').disabled = orbs < info.guaranteedCost;
+    setAutoDisabled(orbs < info.chanceCost);
+  }
+
+  function setAutoDisabled(v) {
+    for (const id of ['#btn-auto10', '#btn-auto-goal', '#btn-auto-burn']) $(id).disabled = v;
+  }
+
+  function showMsg(text, cls) {
+    const el = $('#tw-msg');
+    el.textContent = text;
+    el.className = 'tw-msg ' + (cls || '');
+  }
+
+  // ── 시도 실행 ──
+  function apply(res, quiet) {
+    if (res.error === 'max') { showMsg('이미 최대 레벨입니다.', ''); return false; }
+    if (res.error === 'orbs') { showMsg('힘의 구슬이 부족합니다.', 'no'); return false; }
+
+    const before = curLevel();
+    if (!state.infinite) state.orbs -= res.spent;
+    state.spent += res.spent;
+    state.tries++;
+    if (res.ok) state.wins++; else state.fails++;
+    state.skillLevels[state.active] = res.level;
+
+    const kind = res.kind === 'guaranteed' ? '보장성' : '확률성';
+    if (res.ok) {
+      addLog(`${kind} 성공 — ${before} → ${res.level} (구슬 ${res.spent}개)`,
+        res.kind === 'guaranteed' ? 'g' : 's');
+      if (!quiet) showMsg(`성공! ${before} → ${res.level}`, 'ok');
+    } else {
+      addLog(`확률성 실패 — 레벨 ${before} 유지 (구슬 1개 소실)`, 'f');
+      if (!quiet) showMsg('실패… 구슬이 사라졌습니다.', 'no');
+    }
+    return true;
+  }
+
+  function addLog(text, cls) {
+    state.log.unshift({ text: `${state.tries}. ${text}`, cls });
+    if (state.log.length > 300) state.log.pop();
+  }
+
+  function afterAction() { paintTrain(); paintStats(); paintLog(); renderSkills(); }
+
+  function doChance(quiet) {
+    const r = TrainerCore.tryChance(D, curLevel(), state.infinite ? Infinity : state.orbs);
+    return apply(r, quiet);
+  }
+  function doGuaranteed() {
+    const r = TrainerCore.tryGuaranteed(D, curLevel(), state.infinite ? Infinity : state.orbs);
+    return apply(r);
+  }
+
+  // ── 자동 굴리기 ──
+  function autoRun(limit, stopAt) {
+    let n = 0;
+    const before = curLevel();
+    while (n < limit) {
+      const lv = curLevel();
+      if (stopAt != null && lv >= stopAt) break;
+      if (!TrainerCore.stepInfo(D, lv)) break;
+      if (!state.infinite && state.orbs < 1) break;
+      if (!doChance(true)) break;
+      n++;
+    }
+    const after = curLevel();
+    showMsg(`확률성 ${n}회 자동 — 레벨 ${before} → ${after}`, after > before ? 'ok' : 'no');
+    afterAction();
+  }
+
+  // ── 통계 ──
+  function resetStats() {
+    state.tries = 0; state.wins = 0; state.fails = 0; state.spent = 0; state.log = [];
+    showMsg('', '');
+  }
+
+  function paintStats() {
+    const lv = curLevel();
+    $('#st-level').textContent = `${state.startLevel} → ${lv}`;
+    $('#st-tries').textContent = state.tries;
+    $('#st-sf').textContent = `${state.wins} / ${state.fails}`;
+    $('#st-spent').textContent = state.spent;
+    $('#st-left').textContent = state.infinite ? '∞' : state.orbs;
+
+    const v = $('#st-verdict');
+    if (state.tries === 0) {
+      v.className = 'verdict';
+      v.textContent = '아직 훈련 기록이 없습니다. 확률성이나 보장성을 눌러보세요.';
+      return;
+    }
+    if (lv <= state.startLevel) {
+      v.className = 'verdict bad';
+      v.textContent = `구슬 ${state.spent}개를 썼지만 아직 한 레벨도 오르지 않았습니다. 실제 게임이었다면 그대로 손실입니다.`;
+      return;
+    }
+    const exp = TrainerCore.expectedCost(D, state.startLevel, lv);
+    const diff = exp - state.spent;
+    const pct = exp > 0 ? Math.round((state.spent / exp) * 100) : 100;
+    if (diff > 0.5) {
+      v.className = 'verdict good';
+      v.textContent = `${state.startLevel} → ${lv}에 구슬 ${state.spent}개를 썼습니다. `
+        + `평균 기대치는 약 ${exp.toFixed(1)}개이니 ${diff.toFixed(1)}개 아낀 셈입니다 (기대치의 ${pct}%). 운이 좋았습니다.`;
+    } else if (diff < -0.5) {
+      v.className = 'verdict bad';
+      v.textContent = `${state.startLevel} → ${lv}에 구슬 ${state.spent}개를 썼습니다. `
+        + `평균 기대치는 약 ${exp.toFixed(1)}개인데 ${(-diff).toFixed(1)}개를 더 태웠습니다 (기대치의 ${pct}%).`;
+    } else {
+      v.className = 'verdict mid';
+      v.textContent = `${state.startLevel} → ${lv}에 구슬 ${state.spent}개. `
+        + `평균 기대치(약 ${exp.toFixed(1)}개)와 거의 같습니다.`;
+    }
+  }
+
+  function paintLog() {
+    const box = $('#log');
+    if (!state.log.length) { box.innerHTML = '<div class="hint">아직 기록이 없습니다.</div>'; return; }
+    box.innerHTML = state.log.map((l) => `<div class="${l.cls}">${l.text}</div>`).join('');
+  }
+
+  // ── 성공률 표 ──
+  function renderRateTable() {
+    const rows = [];
+    let run = null;
+    for (let v = 2; v <= MAX; v++) {
+      const r = D.skillRatePct[v];
+      const g = TrainerCore.guaranteedCostAt(D, v);
+      const exp = (1 / (r / 100));
+      const best = Math.abs(exp - g) < 1e-9 ? '동률' : (exp < g ? '확률성' : '보장성');
+      if (run && run.r === r && run.g === g) { run.to = v; continue; }
+      if (run) rows.push(run);
+      run = { from: v, to: v, r, g, exp, best };
+    }
+    if (run) rows.push(run);
+    $('#rate-table').innerHTML =
+      '<tr><th>목표 레벨</th><th>확률성 성공률</th><th>확률성 기대 비용</th><th>보장성 비용</th><th>유리한 쪽</th></tr>' +
+      rows.map((x) =>
+        `<tr><td>${x.from === x.to ? x.from : `${x.from}~${x.to}`}</td>` +
+        `<td>${x.r}%</td><td>${x.exp.toFixed(1)}개</td><td>${x.g}개</td>` +
+        `<td><b>${x.best}</b></td></tr>`).join('');
+  }
+
+  // ── 이벤트 연결 ──
+  $('#mode-char').addEventListener('click', () => setMode('char'));
+  $('#mode-free').addEventListener('click', () => setMode('free'));
+
+  $('#inp-orbs').addEventListener('input', (e) => {
+    state.orbs = Math.max(0, parseInt(e.target.value, 10) || 0);
+    paintTrain(); paintStats();
+  });
+
+  $('#btn-free-start').addEventListener('click', () => {
+    const name = $('#sel-free-skill').value;
+    const lv = Math.max(1, Math.min(MAX, parseInt($('#inp-free-lv').value, 10) || 1));
+    const orbs = Math.max(0, parseInt($('#inp-free-orbs').value, 10) || 0);
+    openTrain(name, lv, { orbs, infinite: false });
+  });
+  $('#btn-free-infinite').addEventListener('click', () => {
+    const name = $('#sel-free-skill').value;
+    const lv = Math.max(1, Math.min(MAX, parseInt($('#inp-free-lv').value, 10) || 1));
+    openTrain(name, lv, { infinite: true });
+  });
+
+  $('#btn-chance').addEventListener('click', () => { doChance(); afterAction(); });
+  $('#btn-guaranteed').addEventListener('click', () => { doGuaranteed(); afterAction(); });
+  $('#btn-close').addEventListener('click', closeTrain);
+
+  $('#btn-auto10').addEventListener('click', () => autoRun(10));
+  $('#btn-auto-goal').addEventListener('click', () => {
+    const goal = Math.max(2, Math.min(MAX, parseInt($('#inp-goal').value, 10) || MAX));
+    autoRun(100000, goal);
+  });
+  $('#btn-auto-burn').addEventListener('click', () => autoRun(100000));
+
+  $('#btn-reset').addEventListener('click', () => {
+    state.skillLevels[state.active] = state.startLevel;
+    resetStats(); afterAction();
+  });
+  $('#btn-clear-log').addEventListener('click', () => { state.log = []; paintLog(); });
+
+  // ── 시작 ──
+  renderJobs(); renderSkills(); renderFree(); renderRateTable();
+})();
+</script>
+</body>
+</html>
