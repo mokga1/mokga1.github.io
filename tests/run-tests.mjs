@@ -316,18 +316,11 @@ test('trainer: 구슬이 없으면 확률성 불가', () => {
 });
 test('trainer: 최대 레벨에서는 훈련 불가', () => {
   assert.equal(T.tryChance(D, 30, 99, () => 0).error, 'max');
-  assert.equal(T.tryGuaranteed(D, 30, 99).error, 'max');
 });
-
-// --- 보장성 ---
-test('trainer: 보장성은 항상 성공하고 구간 비용을 소모', () => {
-  const r = T.tryGuaranteed(D, 20, 50); // 목표 21 → 10개
-  assert.equal(r.ok, true);
-  assert.equal(r.level, 21);
-  assert.equal(r.spent, 10);
-});
-test('trainer: 보장성도 구슬이 모자라면 불가', () => {
-  assert.equal(T.tryGuaranteed(D, 20, 9).error, 'orbs');
+test('trainer: 시뮬레이터는 확률성만 실행한다 (보장성 실행 함수 없음)', () => {
+  assert.equal(T.tryGuaranteed, undefined);
+  // 다만 보장성 비용은 기대치 기준선 계산에 계속 쓰인다
+  assert.equal(T.guaranteedCostAt(D, 21), 10);
 });
 
 // --- 기대 비용이 평가기 로직과 같은 기준인지 ---
