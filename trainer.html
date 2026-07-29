@@ -740,6 +740,8 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   // 게임의 훈련 버튼과 같은 감각. 버튼 밖에서 떼면 취소된다.
   let held = false;
   let heldAt = 0;
+  // 훈련 창 안에서 포인터를 누른 채로 유지 중인지 (버튼 밖에서 미리 눌러둔 경우 포함)
+  let pointerHeldInWindow = false;
 
   function pressStart() {
     if ($('#btn-orb').disabled || held) return;
@@ -753,7 +755,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     if (!held) return;
     held = false;
     $('#btn-orb').classList.remove('down');
-    setHint('손을 버튼 밖에서 떼서 취소했습니다. 구슬은 그대로입니다.');
+    setHint('버튼에서 벗어나 취소되었습니다. 구슬은 그대로입니다.');
   }
 
   function pressRelease() {
@@ -879,10 +881,37 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   });
 
   const orbBtn = $('#btn-orb');
+  const trainWin = document.querySelector('.train-window');
+
   orbBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); pressStart(); });
   orbBtn.addEventListener('pointerup', pressRelease);
   orbBtn.addEventListener('pointerleave', pressCancel);
   orbBtn.addEventListener('pointercancel', pressCancel);
+
+  // 훈련 창 안 아무 데나 미리 누른 채로 버튼 위에 올리면 눌린 상태가 된다.
+  // (게임에서 버튼을 겨냥해 미리 누르고 끌어다 대는 감각)
+  trainWin.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    pointerHeldInWindow = true;
+    // 터치는 pointerdown 대상에 포인터가 암묵적으로 고정되어 다른 요소의
+    // enter/leave가 안 뜬다. 캡처를 풀어 버튼 위로 끌고 갈 수 있게 한다.
+    if (e.target.hasPointerCapture?.(e.pointerId)) e.target.releasePointerCapture(e.pointerId);
+    if (e.target !== orbBtn && !orbBtn.contains(e.target) && !orbBtn.disabled) {
+      setHint('누른 채로 버튼 위에 올리면 눌린 상태가 됩니다.');
+    }
+  });
+
+  orbBtn.addEventListener('pointerenter', () => {
+    if (pointerHeldInWindow) pressStart();
+  });
+
+  const releaseOutside = () => {
+    pointerHeldInWindow = false;
+    pressCancel();
+  };
+  document.addEventListener('pointerup', () => { pointerHeldInWindow = false; });
+  document.addEventListener('pointercancel', releaseOutside);
+
   // 키보드: 스페이스·엔터도 누르는 동안 유지되고 뗄 때 판정된다
   orbBtn.addEventListener('keydown', (e) => {
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pressStart(); }
@@ -891,7 +920,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pressRelease(); }
   });
   // 버튼이 눌린 채로 창을 벗어나는 경우
-  window.addEventListener('blur', pressCancel);
+  window.addEventListener('blur', releaseOutside);
 
   $('#btn-close').addEventListener('click', closeTrain);
 
