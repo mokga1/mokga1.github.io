@@ -30,6 +30,10 @@
 - **훈련 시뮬레이터 데이터**(`trainer.html`의 `TRAINER_DATA`)도 직접 수정하지 말 것 —
   `index.html`의 `GAME`이 원본이고 `node tools/build-trainer.mjs`로 재생성합니다.
   테스트가 두 파일의 수치 일치를 검사하므로, 안 돌리면 `node tests/run-tests.mjs`에서 잡힙니다.
+- **기능 아이콘**은 `assets/skill-icons.png` 한 장(374x18, 17x18px 아이콘 22개 가로 배열)입니다.
+  공식 홈페이지 "기능 및 파라메터" 안내 이미지(`godius.co.kr/h_info_1?t_id=2&part=11`,
+  본문이 통짜 JPG)에서 잘라낸 것입니다. 순서는 `tools/build-trainer.mjs`의 `ICON_ORDER`와
+  반드시 일치해야 하며, 기능이 추가되면 아이콘이 없다고 빌드가 실패합니다.
 - **몬스터 도감 표**(`guide/monsters.html`의 `<!-- ZONES:n -->` 구간)도 직접 수정하지 말 것 —
   원본은 `tools/monster-data.mjs`이고, 고친 뒤 `node tools/build-monsters.mjs`로 정적 HTML을 재생성합니다.
   (표를 JS로 그리면 검색엔진·AdSense 크롤러가 내용을 읽지 못해 빈 페이지로 취급됩니다.)

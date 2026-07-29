@@ -17,6 +17,24 @@ if (!core) {
 const C = new Function(`${core[1]}; return GodiusCalc;`)();
 const G = C.GAME;
 
+// assets/skill-icons.png의 가로 배열 순서. 공식 홈페이지 "기능 및 파라메터" 안내 이미지
+// (godius.co.kr/h_info_1?t_id=2&part=11)에서 기능별 아이콘을 잘라 이어붙인 것이라
+// 아래 순서를 바꾸면 스프라이트도 다시 만들어야 한다.
+const ICON_ORDER = [
+  '검술', '부술', '둔기술', '창술', '격술', '암살검술', '회피술', '함정발견', '해체술',
+  '연막치기', '떨어뜨리기', '화염마법', '냉동마법', '중성마법', '신성마법',
+  '옷제작', '옷수선', '무기제작', '무기수선', '화학', '응급처치', '주가',
+];
+
+const allSkills = [...new Set(
+  [...Object.values(G.jobs), ...Object.values(G.subJobs)].flatMap((j) => j.skills)
+)];
+const missing = allSkills.filter((s) => !ICON_ORDER.includes(s));
+if (missing.length) {
+  console.error(`FAIL: 아이콘이 없는 기능 — ${missing.join(', ')}`);
+  process.exit(1);
+}
+
 const data = {
   jobs: Object.fromEntries(
     Object.entries(G.jobs).map(([k, j]) => [k, { name: j.name, skills: j.skills }])
@@ -28,6 +46,7 @@ const data = {
   skillMax: G.skillMax,
   skillRatePct: G.skillRatePct,
   skillGuaranteedTiers: G.skillGuaranteedTiers,
+  iconIndex: Object.fromEntries(ICON_ORDER.map((n, i) => [n, i])),
 };
 
 const block = `const TRAINER_DATA = ${JSON.stringify(data, null, 2)};`;

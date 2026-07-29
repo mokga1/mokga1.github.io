@@ -55,11 +55,38 @@
   }
   .skill-row button:disabled { opacity: .4; cursor: not-allowed; filter: grayscale(.6); }
 
+  /* ── 기능 아이콘 (공식 안내 이미지에서 잘라낸 스프라이트) ── */
+  .sk-ico {
+    display: inline-block; width: 34px; height: 36px; flex: 0 0 auto;
+    background-image: url(assets/skill-icons.png);
+    background-repeat: no-repeat; background-size: 748px 36px;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+
   /* ── 게임풍 훈련 창 ── */
   .train-window {
     max-width: 420px; margin: 18px auto 0; border: 3px solid #6b4f2e; border-radius: 6px;
     background: linear-gradient(180deg, #3a2c1d, #2a2015); box-shadow: 0 6px 22px rgba(0,0,0,.55);
     overflow: hidden;
+    /* 창 안에서 글자가 드래그로 선택되면 버튼 조작이 방해된다 */
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  /* 기능 아이콘 슬롯 줄 */
+  .tw-slots {
+    display: flex; gap: 3px; flex-wrap: wrap;
+    background: #1a120a; border: 2px inset #8a7448; border-radius: 3px;
+    padding: 4px; margin-bottom: 10px;
+  }
+  .tw-slot {
+    padding: 1px; border: 2px outset #7a6238; border-radius: 2px; cursor: pointer;
+    background: #2a1d10; line-height: 0;
+  }
+  .tw-slot:hover { border-color: var(--gold); }
+  .tw-slot.on { border-style: inset; border-color: #ffd970; box-shadow: 0 0 6px rgba(255,217,112,.6); }
+  .tw-slot.maxed { opacity: .45; }
+  .tw-slot .lv {
+    display: block; font-size: 10px; line-height: 1.2; color: #f0dcae;
+    text-align: center; font-weight: 800;
   }
   .tw-title {
     background: linear-gradient(180deg, #7b5c34, #4e3a21); color: #f0dcae; text-align: center;
@@ -75,13 +102,14 @@
   .tw-msg { margin-top: 6px; font-weight: 800; }
   .tw-msg.ok { color: #1f6b2f; }
   .tw-msg.no { color: #a32b1c; }
-  .tw-orbs {
-    display: flex; justify-content: flex-end; align-items: center; gap: 8px;
-    color: #f0dcae; font-weight: 800; margin-top: 12px; font-size: 15px;
+  /* 아래쪽 줄: 왼쪽 훈련 버튼 · 오른쪽 힘의구슬 (게임 화면과 같은 배치) */
+  .tw-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-top: 12px;
   }
+  .tw-orbs { display: flex; align-items: center; gap: 8px; color: #f0dcae; font-weight: 800; font-size: 15px; }
   .tw-orbs .n { background: #d9cfa8; color: #241b14; border: 2px inset #8a7448; padding: 2px 12px; border-radius: 3px; min-width: 64px; text-align: right; }
-  /* 훈련 실행 버튼 — 누르고 있는 동안은 소모되지 않고, 손을 뗄 때 판정 */
-  .tw-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .tw-cancel-row { text-align: center; margin-top: 10px; }
   .btn-orb {
     width: 54px; height: 46px; flex: 0 0 auto; padding: 0;
     border: 3px outset #9a8250; border-radius: 4px; cursor: pointer;
@@ -97,14 +125,14 @@
     transform: translateY(1px); filter: brightness(1.3);
   }
   .btn-orb:disabled { opacity: .4; cursor: not-allowed; }
-  .tw-hint { flex: 1; color: #d9cfa8; font-size: 12px; line-height: 1.45; }
+  .tw-hint { color: #d9cfa8; font-size: 12px; line-height: 1.45; margin-top: 8px; min-height: 32px; }
   .tw-hint.holding { color: #ffe08a; font-weight: 800; }
-  .tw-actions .cancel {
-    flex: 0 0 auto; min-width: 76px; border: 2px outset #8a7448; border-radius: 4px;
-    padding: 8px 6px; font-size: 13px; font-weight: 800; font-family: inherit; cursor: pointer;
+  .cancel {
+    min-width: 110px; border: 2px outset #8a7448; border-radius: 4px;
+    padding: 7px 6px; font-size: 13px; font-weight: 800; font-family: inherit; cursor: pointer;
     background: linear-gradient(180deg, #6b5c4c, #443a2f); color: #f0dcae;
   }
-  .tw-actions .cancel:hover { filter: brightness(1.15); }
+  .cancel:hover { filter: brightness(1.15); }
   .auto-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .auto-row button {
     background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
@@ -178,7 +206,8 @@
     </div>
 
     <h2 style="margin-top:22px">3. 기능 레벨을 맞추고 훈련하기</h2>
-    <p class="hint">현재 기능 레벨을 입력한 뒤 <b>훈련</b>을 누르면 아래에 훈련 창이 열립니다.</p>
+    <p class="hint">현재 기능 레벨을 입력한 뒤 <b>훈련</b>을 누르면 아래에 훈련 창이 열립니다.
+    훈련 창 위쪽의 <b>기능 아이콘을 눌러</b> 바로 다른 기능으로 바꿀 수도 있습니다.</p>
     <div class="skill-list" id="skill-list"></div>
   </section>
 
@@ -206,14 +235,14 @@
     <div class="train-window">
       <div class="tw-title" id="tw-title">확 률 성</div>
       <div class="tw-body">
+        <div class="tw-slots" id="tw-slots"></div>
         <div class="tw-screen">
           <div><span class="sk" id="tw-skill">기능</span> Level:<span id="tw-level">1</span></div>
           <div id="tw-need">1개의 구슬이 필요합니다.</div>
           <div>성공 확률 <span class="rate" id="tw-rate">90%</span></div>
           <div class="tw-msg" id="tw-msg"></div>
         </div>
-        <div class="tw-orbs">힘의구슬 <span class="n" id="tw-orbs">0</span></div>
-        <div class="tw-actions">
+        <div class="tw-bottom">
           <button type="button" id="btn-orb" class="btn-orb" aria-label="훈련하기 — 누른 뒤 손을 떼면 구슬이 사용됩니다">
             <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
               <circle cx="16" cy="6" r="3.2" fill="currentColor" stroke="none"></circle>
@@ -222,9 +251,10 @@
               <path d="M16 20l-5 6M16 20l5 6"></path>
             </svg>
           </button>
-          <span class="tw-hint" id="tw-hint">누르고 있는 동안은 소모되지 않습니다. 손을 떼는 순간 구슬 1개가 나갑니다.</span>
-          <button type="button" id="btn-close" class="cancel">취소</button>
+          <span class="tw-orbs">힘의구슬 <span class="n" id="tw-orbs">0</span></span>
         </div>
+        <div class="tw-hint" id="tw-hint">누르고 있는 동안은 소모되지 않습니다. 손을 떼는 순간 구슬 1개가 나갑니다.</div>
+        <div class="tw-cancel-row"><button type="button" id="btn-close" class="cancel">취소</button></div>
       </div>
     </div>
     <div class="auto-row">
@@ -306,6 +336,9 @@
   <footer class="site-footer">
     <p>데이터: <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3750780737" target="_blank" rel="noopener">스팀 공식 가이드</a> (기능 성공률표) ·
     보장성 비용은 인게임 확인 수치</p>
+    <p>기능 아이콘 출처: <a href="https://www.godius.co.kr/h_info_1?t_id=2&amp;part=11" target="_blank" rel="noopener">가디우스 공식 홈페이지 — 기능 및 파라메터</a>.
+    아이콘을 포함한 게임 내 이미지의 권리는 개발사에 있으며, 본 사이트는 비공식 팬 사이트로서 공략 안내 목적으로만 인용합니다.
+    권리자의 요청이 있으면 즉시 내리겠습니다 (<a href="terms.html">이용약관</a> 참조).</p>
     <p><a href="./">캐릭터 평가기</a> · <a href="guide/">공략 가이드</a> ·
     <a href="about.html">소개</a> · <a href="privacy.html">개인정보처리방침</a> ·
     <a href="terms.html">이용약관</a></p>
@@ -454,7 +487,31 @@ const TRAINER_DATA = {
       30,
       15
     ]
-  ]
+  ],
+  "iconIndex": {
+    "검술": 0,
+    "부술": 1,
+    "둔기술": 2,
+    "창술": 3,
+    "격술": 4,
+    "암살검술": 5,
+    "회피술": 6,
+    "함정발견": 7,
+    "해체술": 8,
+    "연막치기": 9,
+    "떨어뜨리기": 10,
+    "화염마법": 11,
+    "냉동마법": 12,
+    "중성마법": 13,
+    "신성마법": 14,
+    "옷제작": 15,
+    "옷수선": 16,
+    "무기제작": 17,
+    "무기수선": 18,
+    "화학": 19,
+    "응급처치": 20,
+    "주가": 21
+  }
 };
 /* GAMEDATA:END */
 </script>
@@ -603,10 +660,11 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
       const lv = state.skillLevels[name];
       const row = document.createElement('div');
       row.className = 'skill-row' + (state.active === name ? ' picked' : '');
-      row.innerHTML =
+      row.appendChild(iconEl(name));
+      row.insertAdjacentHTML('beforeend',
         `<span class="nm">${name}</span>` +
         `<input class="lv" type="number" min="1" max="${MAX}" value="${lv}">` +
-        (lv >= MAX ? '<span class="maxed">MAX</span>' : '<button type="button">훈련</button>');
+        (lv >= MAX ? '<span class="maxed">MAX</span>' : '<button type="button">훈련</button>'));
       const input = row.querySelector('input');
       input.addEventListener('input', () => {
         const v = Math.max(1, Math.min(MAX, parseInt(input.value, 10) || 1));
@@ -639,7 +697,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     resetStats();
     $('#panel-train').hidden = false;
     $('#panel-stats').hidden = false;
-    paintTrain(); paintStats(); renderSkills();
+    paintTrain(); paintStats(); renderSlots(); renderSkills();
     $('#panel-train').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -651,6 +709,47 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   }
 
   function curLevel() { return state.skillLevels[state.active] ?? 1; }
+
+  // ── 훈련 창 상단 기능 아이콘 슬롯 ──
+  function iconEl(name) {
+    const i = D.iconIndex[name];
+    const el = document.createElement('i');
+    el.className = 'sk-ico';
+    // 스프라이트는 아이콘 하나가 34px 폭 (원본 17px의 2배)
+    if (i != null) el.style.backgroundPosition = `${-i * 34}px 0`;
+    return el;
+  }
+
+  function renderSlots() {
+    const box = $('#tw-slots');
+    box.innerHTML = '';
+    const list = state.mode === 'char' && state.mainJob && state.subJob
+      ? skillsOf(state.mainJob, state.subJob)
+      : (state.active ? [state.active] : []);
+    for (const name of list) {
+      const lv = state.skillLevels[name] ?? 1;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'tw-slot' + (name === state.active ? ' on' : '') + (lv >= MAX ? ' maxed' : '');
+      b.title = `${name} — 레벨 ${lv}`;
+      b.setAttribute('aria-label', b.title);
+      b.appendChild(iconEl(name));
+      const tag = document.createElement('span');
+      tag.className = 'lv';
+      tag.textContent = lv;
+      b.appendChild(tag);
+      b.addEventListener('click', () => { if (name !== state.active) selectSkill(name); });
+      box.appendChild(b);
+    }
+  }
+
+  // 슬롯을 눌러 훈련할 기능을 바꾼다. 기능이 바뀌면 이번 연습 기록은 새로 시작한다.
+  function selectSkill(name) {
+    state.active = name;
+    state.startLevel = state.skillLevels[name] ?? 1;
+    resetStats();
+    paintTrain(); paintStats(); paintLog(); renderSlots(); renderSkills();
+  }
 
   function paintTrain() {
     const name = state.active;
@@ -729,7 +828,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     if (state.log.length > 300) state.log.pop();
   }
 
-  function afterAction() { paintTrain(); paintStats(); paintLog(); renderSkills(); }
+  function afterAction() { paintTrain(); paintStats(); paintLog(); renderSlots(); renderSkills(); }
 
   function doChance(quiet) {
     const r = TrainerCore.tryChance(D, curLevel(), state.infinite ? Infinity : state.orbs);

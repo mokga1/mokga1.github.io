@@ -275,6 +275,18 @@ test('trainer 데이터: 직업·보조직업 기능 목록이 index.html과 일
   assert.equal(D.skillMax, C.GAME.skillMax);
 });
 
+test('trainer 데이터: 모든 기능에 아이콘 인덱스가 있다', () => {
+  const all = [...new Set(
+    [...Object.values(C.GAME.jobs), ...Object.values(C.GAME.subJobs)].flatMap((j) => j.skills)
+  )];
+  const missing = all.filter((s) => D.iconIndex[s] == null);
+  assert.deepEqual(missing, [], `아이콘 없는 기능: ${missing.join(', ')}`);
+  // 스프라이트는 아이콘 22개가 가로로 이어붙은 374x18 이미지
+  const idx = Object.values(D.iconIndex);
+  assert.equal(new Set(idx).size, idx.length, '아이콘 인덱스가 중복됩니다');
+  assert.ok(Math.max(...idx) < 22, '스프라이트 범위를 벗어난 인덱스가 있습니다');
+});
+
 // --- 성공률·비용 조회 ---
 test('trainer: 성공률 경계값 (2=90%, 20=12%, 21=10%, 26=6%)', () => {
   assert.equal(T.stepInfo(D, 1).ratePct, 90);
