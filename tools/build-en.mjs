@@ -24,7 +24,7 @@ const T = [
   ['GODIUS Eternal War — 힘의 구슬 수지로 내 캐릭터가 잘 컸는지 진단합니다',
    'GODIUS Eternal War — diagnose your character growth through the Orbs of Power ledger'],
   ['<a href="guide/">📚 공략 가이드</a>', '<a href="../">🇰🇷 한국어 (Korean version)</a>'],
-  ['<a href="trainer.html">🎲 훈련 시뮬레이터</a>', '<a href="../trainer.html">🎲 Training Simulator (Korean)</a>'],
+  ['<a href="trainer.html">🎲 구슬 사용 시뮬레이터</a>', '<a href="../trainer.html">🎲 Orb Spending Simulator (Korean)</a>'],
   ['<a href="feedback.html">💬 피드백</a>', '<a href="../feedback.html">💬 Feedback</a>'],
   ['<a href="en/">🇺🇸 English</a>', ''],
 

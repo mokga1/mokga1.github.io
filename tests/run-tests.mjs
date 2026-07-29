@@ -250,7 +250,7 @@ test('evaluate: 생성 배분(72) 모순 입력은 오류', () => {
 });
 
 // ============================================================
-// 훈련 시뮬레이터 (trainer.html)
+// 구슬 사용 시뮬레이터 (trainer.html)
 // ============================================================
 const trainerHtml = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'trainer.html'), 'utf8');
 const tData = trainerHtml.match(/<script id="trainer-data">([\s\S]*?)<\/script>/);

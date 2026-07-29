@@ -1,4 +1,4 @@
-// index.html의 GAME 상수에서 훈련 시뮬레이터가 쓰는 부분만 뽑아 trainer.html에 주입한다.
+// index.html의 GAME 상수에서 구슬 사용 시뮬레이터가 쓰는 부분만 뽑아 trainer.html에 주입한다.
 // 게임 수치의 원본은 언제나 index.html 하나뿐이며, 여기서 복제본이 갈라지지 않도록 매번 재생성한다.
 // index.html의 수치를 고쳤다면 실행: node tools/build-trainer.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
