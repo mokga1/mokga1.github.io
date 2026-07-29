@@ -30,6 +30,7 @@
 - **훈련 시뮬레이터 데이터**(`trainer.html`의 `TRAINER_DATA`)도 직접 수정하지 말 것 —
   `index.html`의 `GAME`이 원본이고 `node tools/build-trainer.mjs`로 재생성합니다.
   테스트가 두 파일의 수치 일치를 검사하므로, 안 돌리면 `node tests/run-tests.mjs`에서 잡힙니다.
+- 훈련 버튼의 사람 아이콘은 `assets/train-button.png` (17x18 픽셀아트, 직접 그림 — 게임사 자산 아님).
 - **기능 아이콘**은 `assets/skill-icons.png` 한 장(374x18, 17x18px 아이콘 22개 가로 배열)입니다.
   공식 홈페이지 "기능 및 파라메터" 안내 이미지(`godius.co.kr/h_info_1?t_id=2&part=11`,
   본문이 통짜 JPG)에서 잘라낸 것입니다. 순서는 `tools/build-trainer.mjs`의 `ICON_ORDER`와

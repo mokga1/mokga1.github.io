@@ -118,7 +118,11 @@
     touch-action: manipulation; user-select: none; -webkit-user-select: none;
     transition: filter .08s;
   }
-  .btn-orb svg { width: 26px; height: 26px; pointer-events: none; }
+  .orb-ico {
+    display: block; width: 34px; height: 36px; pointer-events: none;
+    background: url(assets/train-button.png) no-repeat center / 34px 36px;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
   .btn-orb:hover:not(:disabled) { filter: brightness(1.15); }
   .btn-orb.down {
     border-style: inset; background: linear-gradient(180deg, #4a3720, #6b5230);
@@ -198,9 +202,14 @@
     <div class="field-label">보조직업</div>
     <div class="job-grid" id="sub-job-grid"></div>
 
-    <h2 style="margin-top:22px">2. 보유 힘의 구슬</h2>
+    <h2 style="margin-top:22px">2. 캐릭터 레벨과 보유 구슬</h2>
     <div class="orb-row">
-      <label for="inp-orbs">현재 가지고 있는 구슬</label>
+      <label for="inp-char-level">캐릭터 레벨</label>
+      <input type="number" id="inp-char-level" min="1" max="99" value="30">
+      <span class="hint"><b>기능 레벨은 캐릭터 레벨을 넘을 수 없습니다.</b></span>
+    </div>
+    <div class="orb-row">
+      <label for="inp-orbs">보유 힘의 구슬</label>
       <input type="number" id="inp-orbs" min="0" max="9999" value="30">
       <span class="hint">캐릭터 선택 화면에서 확인할 수 있습니다</span>
     </div>
@@ -244,12 +253,7 @@
         </div>
         <div class="tw-bottom">
           <button type="button" id="btn-orb" class="btn-orb" aria-label="훈련하기 — 누른 뒤 손을 떼면 구슬이 사용됩니다">
-            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
-              <circle cx="16" cy="6" r="3.2" fill="currentColor" stroke="none"></circle>
-              <path d="M16 11v9"></path>
-              <path d="M16 12.5 8.5 6.5M16 12.5l7.5-6"></path>
-              <path d="M16 20l-5 6M16 20l5 6"></path>
-            </svg>
+            <i class="orb-ico" aria-hidden="true"></i>
           </button>
           <span class="tw-orbs">힘의구슬 <span class="n" id="tw-orbs">0</span></span>
         </div>
@@ -298,6 +302,9 @@
       <p>이 페이지는 <b>그 감각을 구슬을 잃지 않고 미리 겪어보게</b> 합니다.
       게임 안의 훈련 창을 그대로 흉내 냈고, 확률도 공식 성공률표를 그대로 씁니다.
       여기서 아무리 굴려도 실제 캐릭터에는 아무 영향이 없습니다.</p>
+      <p>규칙도 게임과 맞춰두었습니다. <b>기능 레벨은 캐릭터 레벨을 넘을 수 없습니다.</b>
+      캐릭터 기준 모드에서 캐릭터 레벨을 입력해두면, 그 레벨에 도달한 기능은 훈련 버튼이 잠깁니다.
+      제한 없이 굴려보고 싶다면 <b>제한 없이 팅겨보기</b> 모드를 쓰세요 — 기능 최대치 30까지 열려 있습니다.</p>
       <p>내 캐릭터가 지금까지 구슬을 얼마나 효율적으로 썼는지 진단받고 싶다면
       <a href="./">캐릭터 평가기</a>를 이용하세요.</p>
     </section>
@@ -529,10 +536,15 @@ function guaranteedCostAt(D, target) {
   return tier ? tier[1] : null;
 }
 
-// 다음 레벨 한 단계에 대한 정보. 최대 레벨이면 null.
-function stepInfo(D, level) {
+// 기능 레벨 상한. 기능 최대치(30)와 캐릭터 레벨 중 낮은 쪽 — 기능은 캐릭터 레벨을 넘을 수 없다.
+function levelCap(D, charLevel) {
+  return Math.min(D.skillMax, charLevel ?? D.skillMax);
+}
+
+// 다음 레벨 한 단계에 대한 정보. 상한에 걸리면 null.
+function stepInfo(D, level, charLevel) {
   const target = level + 1;
-  if (target > D.skillMax) return null;
+  if (target > levelCap(D, charLevel)) return null;
   return {
     target,
     ratePct: D.skillRatePct[target] ?? 0,
@@ -542,10 +554,10 @@ function stepInfo(D, level) {
 }
 
 // 확률성 1회 시도. rng는 [0,1) 난수 함수 (테스트에서 주입 가능)
-// 반환: { kind:'chance', ok, spent, level } — 구슬 부족·최대레벨이면 { error }
-function tryChance(D, level, orbs, rng = Math.random) {
-  const info = stepInfo(D, level);
-  if (!info) return { error: 'max' };
+// 반환: { kind:'chance', ok, spent, level } — 구슬 부족·상한 도달이면 { error }
+function tryChance(D, level, orbs, rng = Math.random, charLevel) {
+  const info = stepInfo(D, level, charLevel);
+  if (!info) return { error: level >= D.skillMax ? 'max' : 'charLevel' };
   if (orbs < info.chanceCost) return { error: 'orbs' };
   const ok = rng() < info.ratePct / 100;
   return { kind: 'chance', ok, spent: info.chanceCost, level: ok ? level + 1 : level };
@@ -568,7 +580,7 @@ function expectedCost(D, from, to) {
 }
 
 const TrainerCore = {
-  rateAt, guaranteedCostAt, stepInfo, tryChance, stepExpected, expectedCost,
+  rateAt, guaranteedCostAt, levelCap, stepInfo, tryChance, stepExpected, expectedCost,
 };
 if (typeof module !== 'undefined') module.exports = TrainerCore;
 </script>
@@ -584,6 +596,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     mainJob: null,
     subJob: null,
     orbs: 30,
+    charLevel: 30,      // 캐릭터 레벨 — 기능 레벨 상한
     infinite: false,
     skillLevels: {},   // 기능명 -> 레벨
     active: null,      // 훈련 중인 기능명
@@ -663,11 +676,11 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
       row.appendChild(iconEl(name));
       row.insertAdjacentHTML('beforeend',
         `<span class="nm">${name}</span>` +
-        `<input class="lv" type="number" min="1" max="${MAX}" value="${lv}">` +
-        (lv >= MAX ? '<span class="maxed">MAX</span>' : '<button type="button">훈련</button>'));
+        `<input class="lv" type="number" min="1" max="${effMax()}" value="${lv}">` +
+        (lv >= effMax() ? `<span class="maxed">${lv >= MAX ? 'MAX' : '레벨한계'}</span>` : '<button type="button">훈련</button>'));
       const input = row.querySelector('input');
       input.addEventListener('input', () => {
-        const v = Math.max(1, Math.min(MAX, parseInt(input.value, 10) || 1));
+        const v = Math.max(1, Math.min(effMax(), parseInt(input.value, 10) || 1));
         state.skillLevels[name] = v;
         if (state.active === name) { state.startLevel = v; resetStats(); paintTrain(); }
         renderSkills();
@@ -710,6 +723,10 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
 
   function curLevel() { return state.skillLevels[state.active] ?? 1; }
 
+  // 자유 모드는 캐릭터가 없으므로 상한 없음(기능 최대치까지). 캐릭터 모드만 레벨 제한을 건다.
+  function capLevel() { return state.mode === 'char' ? state.charLevel : MAX; }
+  function effMax() { return TrainerCore.levelCap(D, capLevel()); }
+
   // ── 훈련 창 상단 기능 아이콘 슬롯 ──
   function iconEl(name) {
     const i = D.iconIndex[name];
@@ -730,7 +747,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
       const lv = state.skillLevels[name] ?? 1;
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'tw-slot' + (name === state.active ? ' on' : '') + (lv >= MAX ? ' maxed' : '');
+      b.className = 'tw-slot' + (name === state.active ? ' on' : '') + (lv >= effMax() ? ' maxed' : '');
       b.title = `${name} — 레벨 ${lv}`;
       b.setAttribute('aria-label', b.title);
       b.appendChild(iconEl(name));
@@ -755,16 +772,21 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     const name = state.active;
     if (!name) return;
     const lv = curLevel();
-    const info = TrainerCore.stepInfo(D, lv);
+    const info = TrainerCore.stepInfo(D, lv, capLevel());
     $('#tw-skill').textContent = name;
     $('#tw-level').textContent = lv;
     $('#tw-orbs').textContent = state.infinite ? '∞' : state.orbs;
 
     if (!info) {
-      $('#tw-need').textContent = '최대 레벨입니다. 더 올릴 수 없습니다.';
+      const atSkillMax = lv >= MAX;
+      $('#tw-need').textContent = atSkillMax
+        ? '최대 레벨입니다. 더 올릴 수 없습니다.'
+        : `캐릭터 레벨(${state.charLevel})까지만 올릴 수 있습니다.`;
       $('#tw-rate').textContent = '—';
       $('#btn-orb').disabled = true;
-      setHint('더 올릴 수 없는 기능입니다.');
+      setHint(atSkillMax
+        ? '더 올릴 수 없는 기능입니다.'
+        : '기능 레벨은 캐릭터 레벨을 넘을 수 없습니다. 레벨을 올리고 다시 오세요.');
       setAutoDisabled(true);
       return;
     }
@@ -800,6 +822,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   // ── 시도 실행 ──
   function apply(res, quiet) {
     if (res.error === 'max') { showMsg('이미 최대 레벨입니다.', ''); return false; }
+    if (res.error === 'charLevel') { showMsg(`캐릭터 레벨(${state.charLevel})을 넘을 수 없습니다.`, 'no'); return false; }
     if (res.error === 'orbs') { showMsg('힘의 구슬이 부족합니다.', 'no'); return false; }
 
     const before = curLevel();
@@ -831,7 +854,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   function afterAction() { paintTrain(); paintStats(); paintLog(); renderSlots(); renderSkills(); }
 
   function doChance(quiet) {
-    const r = TrainerCore.tryChance(D, curLevel(), state.infinite ? Infinity : state.orbs);
+    const r = TrainerCore.tryChance(D, curLevel(), state.infinite ? Infinity : state.orbs, Math.random, capLevel());
     return apply(r, quiet);
   }
 
@@ -877,7 +900,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     while (n < limit) {
       const lv = curLevel();
       if (stopAt != null && lv >= stopAt) break;
-      if (!TrainerCore.stepInfo(D, lv)) break;
+      if (!TrainerCore.stepInfo(D, lv, capLevel())) break;
       if (!state.infinite && state.orbs < 1) break;
       if (!doChance(true)) break;
       n++;
@@ -965,6 +988,17 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   $('#inp-orbs').addEventListener('input', (e) => {
     state.orbs = Math.max(0, parseInt(e.target.value, 10) || 0);
     paintTrain(); paintStats();
+  });
+
+  $('#inp-char-level').addEventListener('input', (e) => {
+    state.charLevel = Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1));
+    // 레벨을 내리면 이미 그보다 높은 기능 레벨도 함께 내려간다
+    const cap = effMax();
+    for (const k of Object.keys(state.skillLevels)) {
+      if (state.skillLevels[k] > cap) state.skillLevels[k] = cap;
+    }
+    if (state.active) state.startLevel = Math.min(state.startLevel, cap);
+    paintTrain(); paintStats(); renderSlots(); renderSkills();
   });
 
   $('#btn-free-start').addEventListener('click', () => {

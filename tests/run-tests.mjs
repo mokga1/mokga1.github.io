@@ -335,6 +335,27 @@ test('trainer: 시뮬레이터는 확률성만 실행한다 (보장성 실행 �
   assert.equal(T.guaranteedCostAt(D, 21), 10);
 });
 
+// --- 캐릭터 레벨 상한 (기능 레벨은 캐릭터 레벨을 넘을 수 없다) ---
+test('trainer: 상한은 기능 최대치와 캐릭터 레벨 중 낮은 쪽', () => {
+  assert.equal(T.levelCap(D, 12), 12);
+  assert.equal(T.levelCap(D, 50), D.skillMax);   // 캐릭터 레벨이 높아도 기능은 30까지
+  assert.equal(T.levelCap(D, undefined), D.skillMax);
+});
+test('trainer: 캐릭터 레벨에 도달한 기능은 더 올릴 수 없다', () => {
+  assert.equal(T.stepInfo(D, 12, 12), null);          // 12렙 캐릭터의 12렙 기능
+  assert.ok(T.stepInfo(D, 11, 12));                   // 11 → 12는 가능
+  assert.equal(T.tryChance(D, 12, 99, () => 0, 12).error, 'charLevel');
+});
+test('trainer: 상한 도달 오류는 기능 최대치와 캐릭터 레벨을 구분한다', () => {
+  assert.equal(T.tryChance(D, 30, 99, () => 0, 99).error, 'max');
+  assert.equal(T.tryChance(D, 20, 99, () => 0, 20).error, 'charLevel');
+});
+test('trainer: 캐릭터 레벨을 안 주면 기능 최대치까지 열려 있다 (자유 모드)', () => {
+  assert.ok(T.stepInfo(D, 29));
+  assert.equal(T.stepInfo(D, 30), null);
+  assert.equal(T.tryChance(D, 25, 99, () => 0).ok, true);
+});
+
 // --- 기대 비용이 평가기 로직과 같은 기준인지 ---
 test('trainer: 1→25 기대 비용이 평가기의 skillExpectedCost와 일치', () => {
   const mine = T.expectedCost(D, 1, 25);
