@@ -110,14 +110,20 @@
   .tw-orbs { display: flex; align-items: center; gap: 8px; color: #f0dcae; font-weight: 800; font-size: 15px; }
   .tw-orbs .n { background: #d9cfa8; color: #241b14; border: 2px inset #8a7448; padding: 2px 12px; border-radius: 3px; min-width: 64px; text-align: right; }
   .tw-cancel-row { text-align: center; margin-top: 10px; }
+  .tw-btns { display: flex; gap: 8px; flex: 0 0 auto; }
   .btn-orb {
-    width: 54px; height: 46px; flex: 0 0 auto; padding: 0;
+    width: 62px; flex: 0 0 auto; padding: 3px 0 4px;
     border: 3px outset #9a8250; border-radius: 4px; cursor: pointer;
     background: linear-gradient(180deg, #8a6a3c, #5c4526); color: #f7e6bb;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
     touch-action: manipulation; user-select: none; -webkit-user-select: none;
-    transition: filter .08s;
+    font-family: inherit; transition: filter .08s;
   }
+  .btn-orb .cap { font-size: 11px; font-weight: 800; line-height: 1.1; pointer-events: none; }
+  .btn-orb .cap b { color: #ffe08a; }
+  /* 화면 안내 줄 — 지금 누르고 있는 방식만 밝게 */
+  .tw-way { transition: opacity .1s; }
+  .tw-way.dim { opacity: .38; }
   .orb-ico {
     display: block; width: 34px; height: 36px; pointer-events: none;
     background: url(assets/train-button.png) no-repeat center / 34px 36px;
@@ -247,14 +253,21 @@
         <div class="tw-slots" id="tw-slots"></div>
         <div class="tw-screen">
           <div><span class="sk" id="tw-skill">기능</span> Level:<span id="tw-level">1</span></div>
-          <div id="tw-need">1개의 구슬이 필요합니다.</div>
-          <div>성공 확률 <span class="rate" id="tw-rate">90%</span></div>
+          <div class="tw-way" id="tw-way-c">확률성 — <b id="tw-cost-c">1</b>개의 구슬이 필요합니다. 성공 확률 <span class="rate" id="tw-rate">90%</span></div>
+          <div class="tw-way" id="tw-way-g">보장성 — <b id="tw-cost-g">2</b>개의 구슬로 <span class="rate">100%</span> 성공합니다.</div>
           <div class="tw-msg" id="tw-msg"></div>
         </div>
         <div class="tw-bottom">
-          <button type="button" id="btn-orb" class="btn-orb" aria-label="훈련하기 — 누른 뒤 손을 떼면 구슬이 사용됩니다">
-            <i class="orb-ico" aria-hidden="true"></i>
-          </button>
+          <div class="tw-btns">
+            <button type="button" id="btn-orb" class="btn-orb" aria-label="확률성 훈련 — 누른 뒤 손을 떼면 구슬이 사용됩니다">
+              <i class="orb-ico" aria-hidden="true"></i>
+              <span class="cap">확률성 <b id="cap-c">1</b></span>
+            </button>
+            <button type="button" id="btn-orb-g" class="btn-orb" aria-label="보장성 훈련 — 누른 뒤 손을 떼면 구슬이 사용됩니다">
+              <i class="orb-ico" aria-hidden="true"></i>
+              <span class="cap">보장성 <b id="cap-g">2</b></span>
+            </button>
+          </div>
           <span class="tw-orbs">힘의구슬 <span class="n" id="tw-orbs">0</span></span>
         </div>
         <div class="tw-hint" id="tw-hint">누르고 있는 동안은 소모되지 않습니다. 손을 떼는 순간 구슬 1개가 나갑니다.</div>
@@ -302,6 +315,10 @@
       <p>이 페이지는 <b>그 감각을 구슬을 잃지 않고 미리 겪어보게</b> 합니다.
       게임 안의 훈련 창을 그대로 흉내 냈고, 확률도 공식 성공률표를 그대로 씁니다.
       여기서 아무리 굴려도 실제 캐릭터에는 아무 영향이 없습니다.</p>
+      <p>두 방식은 <b>언제든 오갈 수 있습니다.</b> 저레벨은 확률성으로 밀다가
+      성공률이 떨어지는 구간에서 보장성으로 갈아타는 것이 실제 게임에서 쓰는 방법인데,
+      그 전환 지점을 여기서 직접 시험해볼 수 있습니다. 버튼 두 개가 나란히 있으니
+      한 번은 확률성, 한 번은 보장성 식으로 섞어 눌러도 됩니다.</p>
       <p>규칙도 게임과 맞춰두었습니다. <b>기능 레벨은 캐릭터 레벨을 넘을 수 없습니다.</b>
       캐릭터 기준 모드에서 캐릭터 레벨을 입력해두면, 그 레벨에 도달한 기능은 훈련 버튼이 잠깁니다.
       제한 없이 굴려보고 싶다면 <b>제한 없이 팅겨보기</b> 모드를 쓰세요 — 기능 최대치 30까지 열려 있습니다.</p>
@@ -329,8 +346,9 @@
         구슬이 얼마나 필요한지 몸으로 알게 됩니다. 평균 50개인데, 운이 나쁘면 100개를 넘기기도 합니다.</li>
         <li><b>지금 내 구슬로 어디까지 가는지</b> — 캐릭터 기준 모드에 실제 보유량을 넣고
         "구슬 다 쓸 때까지"를 눌러보세요. 목표 레벨에 닿을 수 있는 양인지 감이 옵니다.</li>
-        <li><b>보장성으로 바꿀 타이밍 확인하기</b> — 19레벨 이상을 확률성으로만 밀어보고,
-        쓴 구슬을 아래 표의 보장성 비용과 비교해보세요. 왜 그 지점부터 방식을 바꾸라고 하는지 숫자로 드러납니다.</li>
+        <li><b>보장성으로 바꿀 타이밍 확인하기</b> — 같은 기능을 두 번 키워보세요.
+        한 번은 끝까지 확률성으로만, 한 번은 19레벨부터 보장성으로 갈아타서.
+        쓴 구슬을 비교해보면 왜 그 지점에서 방식을 바꾸라고 하는지 숫자로 드러납니다.</li>
         <li><b>리세마라 목표가 왜 빡센지</b> — 기능 하나를 1에서 25까지 올리는 데 평균 96개가 듭니다.
         두 개면 193개인데 레벨 50까지 받는 구슬은 147개뿐입니다.
         자세한 계산은 <a href="guide/reroll.html">리세마라 가이드</a>에 있습니다.</li>
@@ -563,8 +581,16 @@ function tryChance(D, level, orbs, rng = Math.random, charLevel) {
   return { kind: 'chance', ok, spent: info.chanceCost, level: ok ? level + 1 : level };
 }
 
+// 보장성 1회. 정해진 구슬을 내고 100% 성공한다.
+function tryGuaranteed(D, level, orbs, charLevel) {
+  const info = stepInfo(D, level, charLevel);
+  if (!info) return { error: level >= D.skillMax ? 'max' : 'charLevel' };
+  if (orbs < info.guaranteedCost) return { error: 'orbs' };
+  return { kind: 'guaranteed', ok: true, spent: info.guaranteedCost, level: level + 1 };
+}
+
 // 합리적 유저의 한 단계 기대 비용: 확률성 기대값과 보장성 중 싼 쪽
-// (시뮬레이터는 확률성만 굴리지만, 잘한 편인지 판정하는 기준선은 평가기와 같아야 한다)
+// (잘한 편인지 판정하는 기준선은 평가기와 같아야 한다)
 function stepExpected(D, target) {
   const rate = rateAt(D, target);
   const g = guaranteedCostAt(D, target);
@@ -580,7 +606,7 @@ function expectedCost(D, from, to) {
 }
 
 const TrainerCore = {
-  rateAt, guaranteedCostAt, levelCap, stepInfo, tryChance, stepExpected, expectedCost,
+  rateAt, guaranteedCostAt, levelCap, stepInfo, tryChance, tryGuaranteed, stepExpected, expectedCost,
 };
 if (typeof module !== 'undefined') module.exports = TrainerCore;
 </script>
@@ -779,28 +805,38 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
 
     if (!info) {
       const atSkillMax = lv >= MAX;
-      $('#tw-need').textContent = atSkillMax
+      $('#tw-way-c').textContent = atSkillMax
         ? '최대 레벨입니다. 더 올릴 수 없습니다.'
         : `캐릭터 레벨(${state.charLevel})까지만 올릴 수 있습니다.`;
-      $('#tw-rate').textContent = '—';
+      $('#tw-way-g').textContent = '';
       $('#btn-orb').disabled = true;
+      $('#btn-orb-g').disabled = true;
       setHint(atSkillMax
         ? '더 올릴 수 없는 기능입니다.'
         : '기능 레벨은 캐릭터 레벨을 넘을 수 없습니다. 레벨을 올리고 다시 오세요.');
       setAutoDisabled(true);
       return;
     }
-    $('#tw-need').textContent = `${info.chanceCost}개의 구슬이 필요합니다.`;
-    $('#tw-rate').textContent = `${info.ratePct}%`;
+    // 두 방식 안내를 매번 다시 그린다 (상한에 걸렸다가 풀린 경우 대비)
+    $('#tw-way-c').innerHTML =
+      `확률성 — <b>${info.chanceCost}</b>개의 구슬이 필요합니다. 성공 확률 <span class="rate" id="tw-rate">${info.ratePct}%</span>`;
+    $('#tw-way-g').innerHTML =
+      `보장성 — <b>${info.guaranteedCost}</b>개의 구슬로 <span class="rate">100%</span> 성공합니다.`;
+    $('#cap-c').textContent = info.chanceCost;
+    $('#cap-g').textContent = info.guaranteedCost;
+
     const orbs = state.infinite ? Infinity : state.orbs;
-    const short = orbs < info.chanceCost;
-    $('#btn-orb').disabled = short;
-    setAutoDisabled(short);
+    const shortC = orbs < info.chanceCost;
+    const shortG = orbs < info.guaranteedCost;
+    $('#btn-orb').disabled = shortC;
+    $('#btn-orb-g').disabled = shortG;
+    setAutoDisabled(shortC);
     if (!held) {
-      setHint(short
-        ? '힘의 구슬이 없습니다. 보유량을 늘리거나 기록을 초기화하세요.'
-        : '누르고 있는 동안은 소모되지 않습니다. 손을 떼는 순간 구슬 1개가 나갑니다.');
+      if (shortC) setHint('힘의 구슬이 없습니다. 보유량을 늘리거나 기록을 초기화하세요.');
+      else if (shortG) setHint(`보장성은 ${info.guaranteedCost}개가 필요해 지금은 확률성만 쓸 수 있습니다.`);
+      else setDefaultHint();
     }
+    paintWays();
   }
 
   function setHint(text, holding) {
@@ -836,11 +872,13 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     const hold = !quiet && state.lastHoldMs != null ? ` · ${(state.lastHoldMs / 1000).toFixed(1)}초 누름` : '';
     state.lastHoldMs = null;
 
+    const way = res.kind === 'guaranteed' ? '보장성' : '확률성';
     if (res.ok) {
-      addLog(`성공 — ${before} → ${res.level} (구슬 ${res.spent}개)${hold}`, 's');
+      addLog(`${way} 성공 — ${before} → ${res.level} (구슬 ${res.spent}개)${hold}`,
+        res.kind === 'guaranteed' ? 'g' : 's');
       if (!quiet) showMsg(`성공! ${before} → ${res.level}`, 'ok');
     } else {
-      addLog(`실패 — 레벨 ${before} 유지 (구슬 1개 소실)${hold}`, 'f');
+      addLog(`확률성 실패 — 레벨 ${before} 유지 (구슬 1개 소실)${hold}`, 'f');
       if (!quiet) showMsg('실패… 구슬이 사라졌습니다.', 'no');
     }
     return true;
@@ -857,40 +895,64 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     const r = TrainerCore.tryChance(D, curLevel(), state.infinite ? Infinity : state.orbs, Math.random, capLevel());
     return apply(r, quiet);
   }
+  function doGuaranteed() {
+    const r = TrainerCore.tryGuaranteed(D, curLevel(), state.infinite ? Infinity : state.orbs, capLevel());
+    return apply(r);
+  }
 
   // ── 누르고 있는 동안은 소모하지 않고, 손을 뗄 때 판정한다 ──
   // 게임의 훈련 버튼과 같은 감각. 버튼 밖에서 떼면 취소된다.
-  let held = false;
+  // 확률성·보장성 두 버튼이 같은 로직을 쓰고, held에 어느 쪽인지를 담는다.
+  let held = null;      // null | 'chance' | 'guaranteed'
   let heldAt = 0;
   // 훈련 창 안에서 포인터를 누른 채로 유지 중인지 (버튼 밖에서 미리 눌러둔 경우 포함)
   let pointerHeldInWindow = false;
 
-  function pressStart() {
-    if ($('#btn-orb').disabled || held) return;
-    held = true;
+  const WAYS = {
+    chance:     { btn: '#btn-orb',   line: '#tw-way-c', label: '확률성' },
+    guaranteed: { btn: '#btn-orb-g', line: '#tw-way-g', label: '보장성' },
+  };
+
+  // 지금 누르고 있는 방식만 화면에서 밝게 (아무것도 안 누르면 둘 다 밝게)
+  function paintWays() {
+    for (const [k, w] of Object.entries(WAYS)) {
+      $(w.line).classList.toggle('dim', held != null && held !== k);
+    }
+  }
+
+  function pressStart(way) {
+    if (held || $(WAYS[way].btn).disabled) return;
+    held = way;
     heldAt = Date.now();
-    $('#btn-orb').classList.add('down');
-    setHint('누르고 있는 중… 손을 떼면 구슬이 사용됩니다.', true);
+    $(WAYS[way].btn).classList.add('down');
+    const cost = way === 'chance' ? 1 : ($('#cap-g').textContent || '');
+    setHint(`${WAYS[way].label}으로 누르고 있는 중… 손을 떼면 구슬 ${cost}개가 사용됩니다.`, true);
+    paintWays();
   }
 
   function pressCancel() {
     if (!held) return;
-    held = false;
-    $('#btn-orb').classList.remove('down');
+    $(WAYS[held].btn).classList.remove('down');
+    held = null;
+    paintWays();
     setHint('버튼에서 벗어나 취소되었습니다. 구슬은 그대로입니다.');
   }
 
   function pressRelease() {
     if (!held) return;
-    held = false;
-    const ms = Date.now() - heldAt;
-    $('#btn-orb').classList.remove('down');
-    state.lastHoldMs = ms;
-    doChance();
+    const way = held;
+    $(WAYS[way].btn).classList.remove('down');
+    held = null;
+    state.lastHoldMs = Date.now() - heldAt;
+    if (way === 'chance') doChance(); else doGuaranteed();
     afterAction();
-    if (!$('#btn-orb').disabled) {
-      setHint('누르고 있는 동안은 소모되지 않습니다. 손을 떼는 순간 구슬 1개가 나갑니다.');
-    }
+    paintWays();
+    setDefaultHint();
+  }
+
+  function setDefaultHint() {
+    if ($('#btn-orb').disabled && $('#btn-orb-g').disabled) return;
+    setHint('누르고 있는 동안은 소모되지 않습니다. 손을 떼는 순간 구슬이 나갑니다.');
   }
 
   // ── 자동 굴리기 ──
@@ -927,7 +989,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     const v = $('#st-verdict');
     if (state.tries === 0) {
       v.className = 'verdict';
-      v.textContent = '아직 훈련 기록이 없습니다. 훈련 창의 버튼을 눌렀다 떼보세요.';
+      v.textContent = '아직 기록이 없습니다. 확률성이나 보장성 버튼을 눌렀다 떼보세요.';
       return;
     }
     if (lv <= state.startLevel) {
@@ -1013,13 +1075,23 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     openTrain(name, lv, { infinite: true });
   });
 
-  const orbBtn = $('#btn-orb');
   const trainWin = document.querySelector('.train-window');
 
-  orbBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); pressStart(); });
-  orbBtn.addEventListener('pointerup', pressRelease);
-  orbBtn.addEventListener('pointerleave', pressCancel);
-  orbBtn.addEventListener('pointercancel', pressCancel);
+  for (const [way, w] of Object.entries(WAYS)) {
+    const btn = $(w.btn);
+    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); pressStart(way); });
+    btn.addEventListener('pointerup', pressRelease);
+    btn.addEventListener('pointerleave', pressCancel);
+    btn.addEventListener('pointercancel', pressCancel);
+    // 창 안에서 미리 누른 채 버튼 위로 끌고 오면 그 버튼이 눌린 상태가 된다
+    btn.addEventListener('pointerenter', () => { if (pointerHeldInWindow) pressStart(way); });
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pressStart(way); }
+    });
+    btn.addEventListener('keyup', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pressRelease(); }
+    });
+  }
 
   // 훈련 창 안 아무 데나 미리 누른 채로 버튼 위에 올리면 눌린 상태가 된다.
   // (게임에서 버튼을 겨냥해 미리 누르고 끌어다 대는 감각)
@@ -1029,13 +1101,8 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     // 터치는 pointerdown 대상에 포인터가 암묵적으로 고정되어 다른 요소의
     // enter/leave가 안 뜬다. 캡처를 풀어 버튼 위로 끌고 갈 수 있게 한다.
     if (e.target.hasPointerCapture?.(e.pointerId)) e.target.releasePointerCapture(e.pointerId);
-    if (e.target !== orbBtn && !orbBtn.contains(e.target) && !orbBtn.disabled) {
-      setHint('누른 채로 버튼 위에 올리면 눌린 상태가 됩니다.');
-    }
-  });
-
-  orbBtn.addEventListener('pointerenter', () => {
-    if (pointerHeldInWindow) pressStart();
+    const onBtn = e.target.closest?.('.btn-orb');
+    if (!onBtn) setHint('누른 채로 확률성이나 보장성 버튼 위에 올리면 눌린 상태가 됩니다.');
   });
 
   const releaseOutside = () => {
@@ -1045,13 +1112,6 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   document.addEventListener('pointerup', () => { pointerHeldInWindow = false; });
   document.addEventListener('pointercancel', releaseOutside);
 
-  // 키보드: 스페이스·엔터도 누르는 동안 유지되고 뗄 때 판정된다
-  orbBtn.addEventListener('keydown', (e) => {
-    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pressStart(); }
-  });
-  orbBtn.addEventListener('keyup', (e) => {
-    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pressRelease(); }
-  });
   // 버튼이 눌린 채로 창을 벗어나는 경우
   window.addEventListener('blur', releaseOutside);
 

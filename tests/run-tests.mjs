@@ -329,10 +329,42 @@ test('trainer: 구슬이 없으면 확률성 불가', () => {
 test('trainer: 최대 레벨에서는 훈련 불가', () => {
   assert.equal(T.tryChance(D, 30, 99, () => 0).error, 'max');
 });
-test('trainer: 시뮬레이터는 확률성만 실행한다 (보장성 실행 함수 없음)', () => {
-  assert.equal(T.tryGuaranteed, undefined);
-  // 다만 보장성 비용은 기대치 기준선 계산에 계속 쓰인다
-  assert.equal(T.guaranteedCostAt(D, 21), 10);
+// --- 보장성 (확률성과 오가며 쓸 수 있어야 한다) ---
+test('trainer: 보장성은 항상 성공하고 구간 비용을 소모', () => {
+  const r = T.tryGuaranteed(D, 20, 50);   // 목표 21 → 10개
+  assert.equal(r.ok, true);
+  assert.equal(r.kind, 'guaranteed');
+  assert.equal(r.level, 21);
+  assert.equal(r.spent, 10);
+});
+test('trainer: 보장성 비용은 구간을 따른다', () => {
+  assert.equal(T.tryGuaranteed(D, 5, 99).spent, 2);    // 목표 6 → 2개
+  assert.equal(T.tryGuaranteed(D, 14, 99).spent, 3);   // 목표 15 → 3개
+  assert.equal(T.tryGuaranteed(D, 19, 99).spent, 5);   // 목표 20 → 5개
+  assert.equal(T.tryGuaranteed(D, 29, 99).spent, 15);  // 목표 30 → 15개
+});
+test('trainer: 보장성도 구슬이 모자라면 불가', () => {
+  assert.equal(T.tryGuaranteed(D, 20, 9).error, 'orbs');
+  // 같은 상황에서 확률성(1개)은 여전히 가능해야 한다
+  assert.ok(T.tryChance(D, 20, 9, () => 0).ok);
+});
+test('trainer: 보장성도 캐릭터 레벨 상한을 지킨다', () => {
+  assert.equal(T.tryGuaranteed(D, 12, 99, 12).error, 'charLevel');
+  assert.equal(T.tryGuaranteed(D, 30, 99, 99).error, 'max');
+  assert.ok(T.tryGuaranteed(D, 11, 99, 12).ok);
+});
+test('trainer: 확률성과 보장성을 번갈아 써도 레벨·소모가 누적된다', () => {
+  let lv = 1, orbs = 50, spent = 0;
+  for (const way of ['chance', 'guaranteed', 'chance', 'guaranteed']) {
+    const r = way === 'chance'
+      ? T.tryChance(D, lv, orbs, () => 0)     // 항상 성공하는 난수
+      : T.tryGuaranteed(D, lv, orbs);
+    assert.ok(!r.error, JSON.stringify(r));
+    lv = r.level; orbs -= r.spent; spent += r.spent;
+  }
+  assert.equal(lv, 5);                 // 1 → 5, 네 번 모두 성공
+  assert.equal(spent, 1 + 2 + 1 + 2);  // 확률성 1개, 보장성 2개 (저레벨 구간)
+  assert.equal(orbs, 50 - spent);
 });
 
 // --- 캐릭터 레벨 상한 (기능 레벨은 캐릭터 레벨을 넘을 수 없다) ---
