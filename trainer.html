@@ -109,7 +109,7 @@
   }
   .tw-orbs { display: flex; align-items: center; gap: 8px; color: #f0dcae; font-weight: 800; font-size: 15px; }
   .tw-orbs .n { background: #d9cfa8; color: #241b14; border: 2px inset #8a7448; padding: 2px 12px; border-radius: 3px; min-width: 64px; text-align: right; }
-  .tw-cancel-row { text-align: center; margin-top: 10px; }
+  .tw-cancel-row { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
   .tw-btns { display: flex; gap: 8px; flex: 0 0 auto; }
   .btn-orb {
     width: 62px; flex: 0 0 auto; padding: 3px 0 4px;
@@ -272,7 +272,10 @@
           <span class="tw-orbs">힘의구슬 <span class="n" id="tw-orbs">0</span></span>
         </div>
         <div class="tw-hint" id="tw-hint">누르고 있는 동안은 소모되지 않습니다. 손을 떼는 순간 구슬 1개가 나갑니다.</div>
-        <div class="tw-cancel-row"><button type="button" id="btn-close" class="cancel">취소</button></div>
+        <div class="tw-cancel-row">
+          <button type="button" id="btn-restart" class="cancel">↺ 다시하기</button>
+          <button type="button" id="btn-close" class="cancel">취소</button>
+        </div>
       </div>
     </div>
     <div class="auto-row">
@@ -296,7 +299,7 @@
     </div>
     <div class="verdict" id="st-verdict">아직 훈련 기록이 없습니다.</div>
     <div class="btn-line">
-      <button type="button" id="btn-reset">기록 초기화</button>
+      <button type="button" id="btn-reset">↺ 다시하기 (레벨·구슬 되돌리기)</button>
       <button type="button" id="btn-clear-log">로그 지우기</button>
     </div>
     <h3>시도 로그</h3>
@@ -700,7 +703,8 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     mode: 'char',
     mainJob: null,
     subJob: null,
-    orbs: 67,   // 레벨 30까지 누적 (아래 charLevel과 맞춰둔 값)
+    orbs: 67,        // 레벨 30까지 누적 (아래 charLevel과 맞춰둔 값)
+    startOrbs: 67,   // 다시하기로 되돌릴 구슬
     charLevel: 30,      // 캐릭터 레벨 — 기능 레벨 상한
     infinite: false,
     skillLevels: {},   // 기능명 -> 레벨
@@ -812,6 +816,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     state.skillLevels[name] = level;
     if (opts.orbs != null) state.orbs = opts.orbs;
     state.infinite = !!opts.infinite;
+    state.startOrbs = state.orbs;   // 다시하기로 되돌릴 지점
     resetStats();
     $('#panel-train').hidden = false;
     $('#panel-stats').hidden = false;
@@ -869,6 +874,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   function selectSkill(name) {
     state.active = name;
     state.startLevel = state.skillLevels[name] ?? 1;
+    state.startOrbs = state.orbs;
     resetStats();
     paintTrain(); paintStats(); paintLog(); renderSlots(); renderSkills();
   }
@@ -1133,6 +1139,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
 
   $('#inp-orbs').addEventListener('input', (e) => {
     state.orbs = Math.max(0, parseInt(e.target.value, 10) || 0);
+    state.startOrbs = state.orbs;   // 직접 고친 값이 다시하기의 새 기준점
     paintOrbHint(); paintTrain(); paintStats();
   });
 
@@ -1140,6 +1147,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     state.charLevel = Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1));
     // 그 레벨까지 레벨업으로 받았을 구슬을 기본값으로 채워준다 (이후 직접 조절 가능)
     state.orbs = TrainerCore.earnedOrbs(D, state.charLevel);
+    state.startOrbs = state.orbs;
     $('#inp-orbs').value = state.orbs;
     // 레벨을 내리면 이미 상한을 넘은 기능 레벨도 함께 내려간다
     const cap = effMax();
@@ -1222,10 +1230,19 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   });
   $('#btn-auto-burn').addEventListener('click', () => autoRun(100000));
 
-  $('#btn-reset').addEventListener('click', () => {
+  // 처음 열었을 때의 기능 레벨과 구슬로 되돌린다 — 같은 조건을 다시 돌려보기 위한 것
+  function restart() {
+    if (!state.active) return;
     state.skillLevels[state.active] = state.startLevel;
-    resetStats(); afterAction();
-  });
+    if (!state.infinite) state.orbs = state.startOrbs;
+    $('#inp-orbs').value = state.orbs;
+    resetStats();
+    paintOrbHint();
+    afterAction();
+    showMsg(`처음 상태로 되돌렸습니다 (레벨 ${state.startLevel}${state.infinite ? '' : ` · 구슬 ${state.startOrbs}개`}).`, '');
+  }
+  $('#btn-restart').addEventListener('click', restart);
+  $('#btn-reset').addEventListener('click', restart);
   $('#btn-clear-log').addEventListener('click', () => { state.log = []; paintLog(); });
 
   // ── 시작 ──
