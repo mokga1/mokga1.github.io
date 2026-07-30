@@ -46,6 +46,8 @@ const data = {
   skillMax: G.skillMax,
   skillRatePct: G.skillRatePct,
   skillGuaranteedTiers: G.skillGuaranteedTiers,
+  skillLevelReq: G.skillLevelReq,
+  orbTable: G.orbTable,
   iconIndex: Object.fromEntries(ICON_ORDER.map((n, i) => [n, i])),
 };
 

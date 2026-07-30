@@ -349,9 +349,10 @@ test('trainer: 보장성도 구슬이 모자라면 불가', () => {
   assert.ok(T.tryChance(D, 20, 9, () => 0).ok);
 });
 test('trainer: 보장성도 캐릭터 레벨 상한을 지킨다', () => {
-  assert.equal(T.tryGuaranteed(D, 12, 99, 12).error, 'charLevel');
+  assert.equal(T.tryGuaranteed(D, 25, 99, 50).error, 'charLevel');  // 레벨 50은 25가 한계
   assert.equal(T.tryGuaranteed(D, 30, 99, 99).error, 'max');
-  assert.ok(T.tryGuaranteed(D, 11, 99, 12).ok);
+  assert.ok(T.tryGuaranteed(D, 25, 99, 75).ok);                     // 레벨 75면 26 가능
+  assert.ok(T.tryGuaranteed(D, 12, 99, 30).ok);                     // 25 이하는 저레벨도 가능
 });
 test('trainer: 확률성과 보장성을 번갈아 써도 레벨·소모가 누적된다', () => {
   let lv = 1, orbs = 50, spent = 0;
@@ -367,25 +368,59 @@ test('trainer: 확률성과 보장성을 번갈아 써도 레벨·소모가 누�
   assert.equal(orbs, 50 - spent);
 });
 
-// --- 캐릭터 레벨 상한 (기능 레벨은 캐릭터 레벨을 넘을 수 없다) ---
-test('trainer: 상한은 기능 최대치와 캐릭터 레벨 중 낮은 쪽', () => {
-  assert.equal(T.levelCap(D, 12), 12);
-  assert.equal(T.levelCap(D, 50), D.skillMax);   // 캐릭터 레벨이 높아도 기능은 30까지
-  assert.equal(T.levelCap(D, undefined), D.skillMax);
+// --- 캐릭터 레벨이 여는 기능 레벨 상한 (사용자 인게임 확인: 26은 레벨 75부터) ---
+test('trainer: 레벨 74까지는 기능 25가 한계, 75부터 30까지 열린다', () => {
+  assert.equal(T.levelCap(D, 1), 25);
+  assert.equal(T.levelCap(D, 50), 25);
+  assert.equal(T.levelCap(D, 74), 25);
+  assert.equal(T.levelCap(D, 75), 30);
+  assert.equal(T.levelCap(D, 99), 30);
+  assert.equal(T.levelCap(D, undefined), D.skillMax);  // 자유 모드
 });
-test('trainer: 캐릭터 레벨에 도달한 기능은 더 올릴 수 없다', () => {
-  assert.equal(T.stepInfo(D, 12, 12), null);          // 12렙 캐릭터의 12렙 기능
-  assert.ok(T.stepInfo(D, 11, 12));                   // 11 → 12는 가능
-  assert.equal(T.tryChance(D, 12, 99, () => 0, 12).error, 'charLevel');
+test('trainer: 레벨 50 기능 25에서는 훈련이 막히고 구슬도 안 나간다', () => {
+  assert.equal(T.stepInfo(D, 25, 50), null);
+  const c = T.tryChance(D, 25, 99, () => 0, 50);
+  const g = T.tryGuaranteed(D, 25, 99, 50);
+  assert.equal(c.error, 'charLevel');
+  assert.equal(g.error, 'charLevel');
+  assert.equal(c.spent, undefined);   // 소모 필드가 아예 없어야 한다
+  assert.equal(g.spent, undefined);
+});
+test('trainer: 레벨 75면 기능 25 → 26이 열린다', () => {
+  assert.ok(T.stepInfo(D, 25, 75));
+  assert.equal(T.stepInfo(D, 25, 75).target, 26);
+  assert.ok(T.tryChance(D, 25, 99, () => 0, 75).ok);
+});
+test('trainer: 24 → 25는 저레벨에서도 가능', () => {
+  assert.ok(T.stepInfo(D, 24, 30));
+  assert.ok(T.tryChance(D, 24, 99, () => 0, 30).ok);
+});
+test('trainer: levelNeededFor — 25까지는 1, 26~30은 75', () => {
+  assert.equal(T.levelNeededFor(D, 25), 1);
+  assert.equal(T.levelNeededFor(D, 26), 75);
+  assert.equal(T.levelNeededFor(D, 30), 75);
 });
 test('trainer: 상한 도달 오류는 기능 최대치와 캐릭터 레벨을 구분한다', () => {
   assert.equal(T.tryChance(D, 30, 99, () => 0, 99).error, 'max');
-  assert.equal(T.tryChance(D, 20, 99, () => 0, 20).error, 'charLevel');
+  assert.equal(T.tryChance(D, 25, 99, () => 0, 50).error, 'charLevel');
 });
-test('trainer: 캐릭터 레벨을 안 주면 기능 최대치까지 열려 있다 (자유 모드)', () => {
+test('trainer: 자유 모드는 캐릭터 레벨 없이 30까지 열려 있다', () => {
+  assert.ok(T.stepInfo(D, 25));
   assert.ok(T.stepInfo(D, 29));
   assert.equal(T.stepInfo(D, 30), null);
-  assert.equal(T.tryChance(D, 25, 99, () => 0).ok, true);
+});
+
+// --- 레벨별 누적 구슬 (평가기와 같은 표를 써야 한다) ---
+test('trainer: earnedOrbs가 평가기의 값과 일치', () => {
+  for (const lv of [2, 10, 30, 50, 75, 99]) {
+    assert.equal(T.earnedOrbs(D, lv), C.earnedOrbs(lv), `레벨 ${lv}`);
+  }
+  assert.equal(T.earnedOrbs(D, 50), 147);
+  assert.equal(T.earnedOrbs(D, 99), 449);
+});
+test('trainer 데이터: index.html의 구슬 획득표와 일치', () => {
+  assert.deepEqual(D.orbTable, C.GAME.orbTable);
+  assert.deepEqual(D.skillLevelReq, C.GAME.skillLevelReq);
 });
 
 // --- 기대 비용이 평가기 로직과 같은 기준인지 ---
