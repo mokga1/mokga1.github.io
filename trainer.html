@@ -815,9 +815,11 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     state.active = name;
     state.startLevel = level;
     state.skillLevels[name] = level;
-    if (opts.orbs != null) state.orbs = opts.orbs;
+    if (opts.orbs != null) {
+      state.orbs = opts.orbs;
+      state.startOrbs = opts.orbs;   // 자유 모드에서 새로 지정한 값이 복구 지점
+    }
     state.infinite = !!opts.infinite;
-    state.startOrbs = state.orbs;   // 다시하기로 되돌릴 지점
     resetStats();
     $('#panel-train').hidden = false;
     $('#panel-stats').hidden = false;
@@ -875,7 +877,8 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   function selectSkill(name) {
     state.active = name;
     state.startLevel = state.skillLevels[name] ?? 1;
-    state.startOrbs = state.orbs;
+    // startOrbs는 건드리지 않는다 — 다시하기는 '설정 상태'로 돌아가는 것이지
+    // 기능을 바꾼 시점으로 돌아가는 것이 아니다
     resetStats();
     paintTrain(); paintStats(); paintLog(); renderSlots(); renderSkills();
   }
