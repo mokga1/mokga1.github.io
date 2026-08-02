@@ -290,12 +290,14 @@
 
   <!-- ── 통계 ── -->
   <section class="card" id="panel-stats" hidden>
-    <h2>이번 연습 기록</h2>
+    <h2>연습 기록 (누적)</h2>
+    <p class="hint">기능을 바꿔도 기록은 이어집니다. <b>↺ 다시하기</b>를 눌러야 새로 시작합니다.</p>
     <div class="stat-grid">
-      <div class="stat-box"><div class="k">기능 레벨</div><div class="v" id="st-level">1 → 1</div></div>
+      <div class="stat-box" style="grid-column:1/-1"><div class="k">올린 기능</div><div class="v" id="st-level" style="font-size:15px">아직 없음</div></div>
       <div class="stat-box"><div class="k">시도 횟수</div><div class="v" id="st-tries">0</div></div>
       <div class="stat-box"><div class="k">성공 / 실패</div><div class="v" id="st-sf">0 / 0</div></div>
       <div class="stat-box"><div class="k">쓴 구슬</div><div class="v" id="st-spent">0</div></div>
+      <div class="stat-box"><div class="k">실패로 날린 구슬</div><div class="v" id="st-lost" style="color:#eea79b">0</div></div>
       <div class="stat-box"><div class="k">남은 구슬</div><div class="v" id="st-left">0</div></div>
     </div>
     <div class="verdict" id="st-verdict">아직 훈련 기록이 없습니다.</div>
@@ -711,7 +713,8 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     skillLevels: {},   // 기능명 -> 레벨
     active: null,      // 훈련 중인 기능명
     startLevel: 1,
-    tries: 0, wins: 0, fails: 0, spent: 0,
+    tries: 0, wins: 0, fails: 0, spent: 0, lost: 0,
+    baseLevels: {},   // 세션 시작 시점의 기능별 레벨
     log: [],
   };
 
@@ -877,9 +880,8 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   function selectSkill(name) {
     state.active = name;
     state.startLevel = state.skillLevels[name] ?? 1;
-    // startOrbs는 건드리지 않는다 — 다시하기는 '설정 상태'로 돌아가는 것이지
-    // 기능을 바꾼 시점으로 돌아가는 것이 아니다
-    resetStats();
+    // startOrbs도 기록도 건드리지 않는다 — 연습 기록은 세션 전체로 누적된다
+    showMsg('', '');
     paintTrain(); paintStats(); paintLog(); renderSlots(); renderSkills();
   }
 
@@ -959,7 +961,7 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
     if (!state.infinite) state.orbs -= res.spent;
     state.spent += res.spent;
     state.tries++;
-    if (res.ok) state.wins++; else state.fails++;
+    if (res.ok) state.wins++; else { state.fails++; state.lost += res.spent; }
     state.skillLevels[state.active] = res.level;
 
     // 손으로 누른 시도에는 누르고 있던 시간을 함께 남긴다 (자동 굴리기는 표기하지 않음)
@@ -1067,17 +1069,40 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
   }
 
   // ── 통계 ──
+  // 연습 기록은 세션 단위로 누적된다. 기능을 바꿔도 초기화하지 않고,
+  // 다시하기나 설정 변경으로 판을 새로 깔 때만 지운다.
   function resetStats() {
-    state.tries = 0; state.wins = 0; state.fails = 0; state.spent = 0; state.log = [];
+    state.tries = 0; state.wins = 0; state.fails = 0; state.spent = 0; state.lost = 0;
+    state.log = [];
+    snapshotBase();
     showMsg('', '');
   }
 
+  // 세션 시작 시점의 기능별 레벨. 누적 기대치를 계산하려면 어디서 출발했는지 알아야 한다.
+  function snapshotBase() {
+    state.baseLevels = { ...state.skillLevels };
+  }
+
+  // 이번 세션에 실제로 오른 기능들 (기능명 → [시작, 현재])
+  function progressed() {
+    const out = [];
+    for (const [name, cur] of Object.entries(state.skillLevels)) {
+      const from = state.baseLevels[name] ?? cur;
+      if (cur > from) out.push([name, from, cur]);
+    }
+    return out;
+  }
+
   function paintStats() {
-    const lv = curLevel();
-    $('#st-level').textContent = `${state.startLevel} → ${lv}`;
+    const prog = progressed();
+    // 오른 기능이 여럿이면 전부 보여준다 (기능을 바꿔가며 연습해도 기록은 이어진다)
+    $('#st-level').textContent = prog.length
+      ? prog.map(([n, a, b]) => `${n} ${a}→${b}`).join(' · ')
+      : '아직 없음';
     $('#st-tries').textContent = state.tries;
     $('#st-sf').textContent = `${state.wins} / ${state.fails}`;
     $('#st-spent').textContent = state.spent;
+    $('#st-lost').textContent = state.lost;
     $('#st-left').textContent = state.infinite ? '∞' : state.orbs;
 
     const v = $('#st-verdict');
@@ -1086,26 +1111,33 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
       v.textContent = '아직 기록이 없습니다. 확률성이나 보장성 버튼을 눌렀다 떼보세요.';
       return;
     }
-    if (lv <= state.startLevel) {
+    const lostPct = state.spent > 0 ? Math.round((state.lost / state.spent) * 100) : 0;
+    const lostLine = state.lost > 0
+      ? ` 그중 <b>${state.lost}개</b>가 확률성 실패로 사라졌습니다 (쓴 구슬의 ${lostPct}%).`
+      : ' 실패로 날린 구슬은 아직 없습니다.';
+
+    if (!prog.length) {
       v.className = 'verdict bad';
-      v.textContent = `구슬 ${state.spent}개를 썼지만 아직 한 레벨도 오르지 않았습니다. 실제 게임이었다면 그대로 손실입니다.`;
+      v.innerHTML = `구슬 ${state.spent}개를 썼지만 아직 한 레벨도 오르지 않았습니다.${lostLine}`;
       return;
     }
-    const exp = TrainerCore.expectedCost(D, state.startLevel, lv);
+    // 오른 기능 전체의 기대 비용과 비교한다
+    const exp = prog.reduce((sum, [, a, b]) => sum + TrainerCore.expectedCost(D, a, b), 0);
     const diff = exp - state.spent;
     const pct = exp > 0 ? Math.round((state.spent / exp) * 100) : 100;
+    const head = `기능 ${prog.length}종에 구슬 <b>${state.spent}개</b>를 썼습니다.${lostLine}`;
+
     if (diff > 0.5) {
       v.className = 'verdict good';
-      v.textContent = `${state.startLevel} → ${lv}에 구슬 ${state.spent}개를 썼습니다. `
-        + `평균 기대치는 약 ${exp.toFixed(1)}개이니 ${diff.toFixed(1)}개 아낀 셈입니다 (기대치의 ${pct}%). 운이 좋았습니다.`;
+      v.innerHTML = `${head} 평균 기대치는 약 ${exp.toFixed(1)}개이니 `
+        + `${diff.toFixed(1)}개 아낀 셈입니다 (기대치의 ${pct}%). 운이 좋았습니다.`;
     } else if (diff < -0.5) {
       v.className = 'verdict bad';
-      v.textContent = `${state.startLevel} → ${lv}에 구슬 ${state.spent}개를 썼습니다. `
-        + `평균 기대치는 약 ${exp.toFixed(1)}개인데 ${(-diff).toFixed(1)}개를 더 태웠습니다 (기대치의 ${pct}%).`;
+      v.innerHTML = `${head} 평균 기대치는 약 ${exp.toFixed(1)}개인데 `
+        + `${(-diff).toFixed(1)}개를 더 태웠습니다 (기대치의 ${pct}%).`;
     } else {
       v.className = 'verdict mid';
-      v.textContent = `${state.startLevel} → ${lv}에 구슬 ${state.spent}개. `
-        + `평균 기대치(약 ${exp.toFixed(1)}개)와 거의 같습니다.`;
+      v.innerHTML = `${head} 평균 기대치(약 ${exp.toFixed(1)}개)와 거의 같습니다.`;
     }
   }
 
