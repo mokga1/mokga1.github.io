@@ -795,8 +795,10 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
       input.addEventListener('input', () => {
         const v = Math.max(1, Math.min(effMax(), parseInt(input.value, 10) || 1));
         state.skillLevels[name] = v;
-        if (state.active === name) { state.startLevel = v; resetStats(); paintTrain(); }
-        renderSkills();
+        // 손으로 고친 값이 이 기능의 새 출발점 — 누적 기록 자체는 건드리지 않는다
+        state.baseLevels[name] = v;
+        if (state.active === name) { state.startLevel = v; paintTrain(); }
+        paintStats(); renderSlots(); renderSkills();
       });
       const btn = row.querySelector('button');
       if (btn) btn.addEventListener('click', () => openTrain(name, state.skillLevels[name]));
@@ -815,6 +817,10 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
 
   // ── 훈련 창 ──
   function openTrain(name, level, opts = {}) {
+    // 훈련 창이 이미 열려 있고 같은 캐릭터 모드라면 기능만 바꾸는 것 —
+    // 목록의 훈련 버튼으로 오갈 때도 연습 기록은 이어져야 한다
+    const switching = !$('#panel-train').hidden && state.mode === 'char'
+      && opts.orbs == null && !opts.infinite;
     state.active = name;
     state.startLevel = level;
     state.skillLevels[name] = level;
@@ -823,7 +829,8 @@ if (typeof module !== 'undefined') module.exports = TrainerCore;
       state.startOrbs = opts.orbs;   // 자유 모드에서 새로 지정한 값이 복구 지점
     }
     state.infinite = !!opts.infinite;
-    resetStats();
+    if (switching) showMsg('', '');
+    else resetStats();
     $('#panel-train').hidden = false;
     $('#panel-stats').hidden = false;
     paintTrain(); paintStats(); renderSlots(); renderSkills();
